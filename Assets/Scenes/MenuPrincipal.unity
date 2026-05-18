@@ -637,7 +637,7 @@ GameObject:
   - component: {fileID: 1953435807}
   - component: {fileID: 1953435810}
   m_Layer: 0
-  m_Name: Idle_0
+  m_Name: Idle_LightMage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
