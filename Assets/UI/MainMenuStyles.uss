@@ -1,0 +1,65 @@
+/* Centraliza todo o conteúdo na tela e deixa o fundo invisível */
+.menu-container {
+    flex-grow: 1;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0);
+    
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+/* Estilo do Título: Usamos % para margem e um tamanho de fonte fixo saudável */
+.menu-title {
+    font-size: 96px; 
+    color: white;
+    -unity-font-style: bold;
+    margin-bottom: 40px;
+
+    -unity-font: url("project://database/Assets/UI/Fonts/Daydream.otf");
+    -unity-font-definition: initial;
+    text-transform: uppercase;
+}
+
+/* Alinhamento dos botões: Usa porcentagem elástica com limites seguros */
+.button-group {
+    width: 30%; 
+    min-width: 320px; 
+    max-width: 500px;
+    flex-direction: column;
+}
+
+.menu-button {
+    width: 100%;
+    height: 64px;
+    margin-bottom: 14px;
+    
+    /* Fundo escuro azulado místico */
+    background-color: rgba(15, 20, 35, 0.85);
+    color: #e0e0e0;
+    font-size: 25px;
+    border-radius: 12px;
+    
+    border-width: 2px;
+    border-color: #ffb703; 
+    
+    transition-duration: 0.2s;
+    -unity-font: url("project://database/Assets/UI/Fonts/Daydream.otf");
+    -unity-font-definition: initial;
+    text-transform: uppercase;
+}
+
+/* Efeito de Hover */
+.menu-button:hover {
+    background-color: #ffb703;
+    color: #0f1423;
+    border-color: #ffffff;
+    scale: 1.05;
+    -unity-font-style: bold;
+}
+
+.menu-button:active {
+    scale: 0.95; 
+    opacity: 0.9;
+}
