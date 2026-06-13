@@ -34,7 +34,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -43,7 +43,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 1
+  spriteMode: 2
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -69,10 +69,10 @@ TextureImporter:
   platformSettings:
   - serializedVersion: 3
     buildTarget: DefaultTexturePlatform
-    maxTextureSize: 2048
+    maxTextureSize: 4096
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 1
+    textureCompression: 0
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -95,7 +95,595 @@ TextureImporter:
     forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
-    sprites: []
+    sprites:
+    - serializedVersion: 2
+      name: spellcast_0
+      rect:
+        serializedVersion: 2
+        x: 6
+        y: 193
+        width: 52
+        height: 54
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0093f3ecf09055048a281bb531d1ce2f
+      internalID: 1085002876
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spellcast_1
+      rect:
+        serializedVersion: 2
+        x: 70
+        y: 193
+        width: 52
+        height: 54
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 388cb5d8b35036f4dae0cb558842593d
+      internalID: 2043282117
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spellcast_2
+      rect:
+        serializedVersion: 2
+        x: 134
+        y: 193
+        width: 52
+        height: 54
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8484e8c9c2919e4469d2d01a5953b10c
+      internalID: -242703825
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spellcast_3
+      rect:
+        serializedVersion: 2
+        x: 198
+        y: 193
+        width: 52
+        height: 54
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5e392c6eedd2f154babdac9e4c847f08
+      internalID: 1173913404
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spellcast_4
+      rect:
+        serializedVersion: 2
+        x: 262
+        y: 193
+        width: 52
+        height: 54
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 06e397fabe6b1c6499b4a2e816a3829a
+      internalID: -309744385
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spellcast_5
+      rect:
+        serializedVersion: 2
+        x: 326
+        y: 193
+        width: 52
+        height: 54
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 122688a357709ec49a2e8ca2c4f22c0b
+      internalID: 1383383889
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spellcast_6
+      rect:
+        serializedVersion: 2
+        x: 390
+        y: 193
+        width: 52
+        height: 54
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 11bf1c71c7848fd4d9701c1e0a1dc2c0
+      internalID: -546772400
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spellcast_7
+      rect:
+        serializedVersion: 2
+        x: 19
+        y: 129
+        width: 40
+        height: 54
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2870b54f67dab974f929d2540cff8a4f
+      internalID: 2022258247
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spellcast_8
+      rect:
+        serializedVersion: 2
+        x: 83
+        y: 129
+        width: 40
+        height: 54
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a42ae1f77e6065b45b92746c7a066a4b
+      internalID: -1072696733
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spellcast_9
+      rect:
+        serializedVersion: 2
+        x: 147
+        y: 129
+        width: 40
+        height: 54
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: dfe11d7e23f17a24db67bf2670bf3cb6
+      internalID: 482449453
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spellcast_10
+      rect:
+        serializedVersion: 2
+        x: 211
+        y: 129
+        width: 40
+        height: 54
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6548efba2095cfc4abe6ca7cd91da810
+      internalID: 1202647939
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spellcast_11
+      rect:
+        serializedVersion: 2
+        x: 274
+        y: 129
+        width: 41
+        height: 54
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 770d1da73242af94aab6af920c4c5f1a
+      internalID: 1914267514
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spellcast_12
+      rect:
+        serializedVersion: 2
+        x: 338
+        y: 129
+        width: 41
+        height: 54
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 31eb647ca3e0da74f9b8e147b5f01d4c
+      internalID: -977804507
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spellcast_13
+      rect:
+        serializedVersion: 2
+        x: 403
+        y: 129
+        width: 40
+        height: 54
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8b219180dd5df8d4d8b86ec7eb058d17
+      internalID: 1633108962
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spellcast_14
+      rect:
+        serializedVersion: 2
+        x: 6
+        y: 65
+        width: 52
+        height: 53
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b4dbed5f9212ee04fb1e8017834f30fd
+      internalID: -711644187
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spellcast_15
+      rect:
+        serializedVersion: 2
+        x: 70
+        y: 65
+        width: 52
+        height: 53
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f67a3db9dda53dd47a34eabb59c508e7
+      internalID: -953529000
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spellcast_16
+      rect:
+        serializedVersion: 2
+        x: 134
+        y: 65
+        width: 52
+        height: 53
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 37dba268d239d394c9d39c7e8f4b50a5
+      internalID: 1272103214
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spellcast_17
+      rect:
+        serializedVersion: 2
+        x: 198
+        y: 65
+        width: 52
+        height: 53
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bf1b4f937b1aa7342b61620e3eb4f158
+      internalID: 2126775665
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spellcast_18
+      rect:
+        serializedVersion: 2
+        x: 262
+        y: 65
+        width: 52
+        height: 53
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 13d49bd0930a1454db48c5509a6890b4
+      internalID: 1746188956
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spellcast_19
+      rect:
+        serializedVersion: 2
+        x: 326
+        y: 65
+        width: 52
+        height: 53
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1d1c297f78b2942479aa9e79357f72b3
+      internalID: 1399378
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spellcast_20
+      rect:
+        serializedVersion: 2
+        x: 390
+        y: 65
+        width: 52
+        height: 53
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 49b661df978120f4f8677e3ae8f2a7c9
+      internalID: 1457887824
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spellcast_21
+      rect:
+        serializedVersion: 2
+        x: 5
+        y: 1
+        width: 40
+        height: 54
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4626c7a8f0ca216488db0284a7e50ed7
+      internalID: 1596834705
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spellcast_22
+      rect:
+        serializedVersion: 2
+        x: 69
+        y: 1
+        width: 40
+        height: 54
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 10e179dea43c20945943820c0c6db4f0
+      internalID: 584374134
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spellcast_23
+      rect:
+        serializedVersion: 2
+        x: 133
+        y: 1
+        width: 40
+        height: 54
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 637779d44525aa24d82202fc047d8161
+      internalID: 1610274659
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spellcast_24
+      rect:
+        serializedVersion: 2
+        x: 197
+        y: 1
+        width: 40
+        height: 54
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0693d8288c6e6484092914d4e81e85bc
+      internalID: 434746166
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spellcast_25
+      rect:
+        serializedVersion: 2
+        x: 261
+        y: 1
+        width: 41
+        height: 54
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4ae0eb06c16c3cc4cb0ddfa53703c497
+      internalID: 1025655927
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spellcast_26
+      rect:
+        serializedVersion: 2
+        x: 325
+        y: 1
+        width: 41
+        height: 54
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b23e1356d4a867d42913b6e6542de9af
+      internalID: -726525555
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spellcast_27
+      rect:
+        serializedVersion: 2
+        x: 389
+        y: 1
+        width: 40
+        height: 54
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 43e78c7dd36aa1747a9e70f457d63c2b
+      internalID: 1919143695
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -106,7 +694,35 @@ TextureImporter:
     edges: []
     weights: []
     secondaryTextures: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      spellcast_0: 1085002876
+      spellcast_1: 2043282117
+      spellcast_10: 1202647939
+      spellcast_11: 1914267514
+      spellcast_12: -977804507
+      spellcast_13: 1633108962
+      spellcast_14: -711644187
+      spellcast_15: -953529000
+      spellcast_16: 1272103214
+      spellcast_17: 2126775665
+      spellcast_18: 1746188956
+      spellcast_19: 1399378
+      spellcast_2: -242703825
+      spellcast_20: 1457887824
+      spellcast_21: 1596834705
+      spellcast_22: 584374134
+      spellcast_23: 1610274659
+      spellcast_24: 434746166
+      spellcast_25: 1025655927
+      spellcast_26: -726525555
+      spellcast_27: 1919143695
+      spellcast_3: 1173913404
+      spellcast_4: -309744385
+      spellcast_5: 1383383889
+      spellcast_6: -546772400
+      spellcast_7: 2022258247
+      spellcast_8: -1072696733
+      spellcast_9: 482449453
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
