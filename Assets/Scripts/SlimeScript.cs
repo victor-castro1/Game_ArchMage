@@ -11,9 +11,9 @@ public class SlimeIA : MonoBehaviour
     public float distanciaParaAtacar = 1.2f; // Quão perto ele precisa chegar para bater
     public float tempoEntreAtaques = 1.5f;   // Cooldown do ataque
     public float tempoAtordoado = 0.3f;      // Tempo que ele trava quando toma hit
-
+    
     [Header("Efeito de Dano")]
-    public Material materialFlash; 
+    public Material materialFlash;
     private Material materialOriginal;
 
     private Transform alvoJogador;
@@ -59,15 +59,16 @@ public class SlimeIA : MonoBehaviour
         else
         {
             // Longe: Persegue o jogador
-            rb.MovePosition(rb.position + direcao * velocidade * Time.fixedDeltaTime);
+            Vector2 direcaoSegura = DesviarDeObstaculos(direcao);
+            rb.MovePosition(rb.position + direcaoSegura * velocidade * Time.fixedDeltaTime);
             anim.SetBool("Andando", true);
         }
 
         // --- O TRUQUE DO FLIP ---
-        if (direcao != Vector2.zero) 
+        if (direcao != Vector2.zero)
         {
             if (direcao.x > 0) sr.flipX = true;
-            else if (direcao.x < 0) sr.flipX = false;  
+            else if (direcao.x < 0) sr.flipX = false;
         }
     }
 
@@ -82,7 +83,7 @@ public class SlimeIA : MonoBehaviour
         if (estaMorto || estaAtordoado) return;
 
         vidaTotal -= quantidade;
-        
+
         // O clássico flash de dano que configuramos
         StartCoroutine(RotinaFlash());
 
@@ -97,6 +98,26 @@ public class SlimeIA : MonoBehaviour
         }
     }
 
+    private Vector2 DesviarDeObstaculos(Vector2 direcaoAlvo)
+    {
+        // Atira um raio 1.5 metros para frente buscando a Layer "Obstaculo"
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, direcaoAlvo, 1.5f, LayerMask.GetMask("Obstaculo"));
+
+        if (hit.collider != null)
+        {
+            // Tem parede! Tenta desviar pela direita (Calcula a perpendicular)
+            Vector2 desvioDireita = new Vector2(-direcaoAlvo.y, direcaoAlvo.x);
+            RaycastHit2D hitDesvio = Physics2D.Raycast(transform.position, desvioDireita, 1.5f, LayerMask.GetMask("Obstaculo"));
+
+            if (hitDesvio.collider == null) return desvioDireita; // Direita livre!
+
+            // Se direita tá bloqueada, vai pela esquerda
+            return new Vector2(direcaoAlvo.y, -direcaoAlvo.x);
+        }
+
+        return direcaoAlvo; // Caminho totalmente livre
+    }
+
     private IEnumerator RotinaAtaque()
     {
         estaAtacando = true;
@@ -106,7 +127,7 @@ public class SlimeIA : MonoBehaviour
         anim.SetTrigger("Attack");
 
         // Tempo para a animação do ataque rolar (Ajuste conforme sua animação)
-        yield return new WaitForSeconds(0.5f); 
+        yield return new WaitForSeconds(0.5f);
 
         // AQUI ENTRARÁ A LÓGICA DE CAUSAR DANO NO PLAYER NO FUTURO
 
@@ -139,8 +160,8 @@ public class SlimeIA : MonoBehaviour
         anim.SetTrigger("Death");
 
         // Tempo certinho daquela sua animação de derretendo/ossos quebrando
-        yield return new WaitForSeconds(1.0f); 
-        
+        yield return new WaitForSeconds(1.0f);
+
         Destroy(gameObject);
     }
 }

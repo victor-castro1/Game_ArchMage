@@ -4,10 +4,13 @@ using Cinemachine;
 
 public class BossCerebro : MonoBehaviour
 {
+
+    private bool estaTeletransportando = false;
     
     [Header("Configurações de Movimento")]
     public float velocidade = 3.0f;
     public float raioDeteccao = 10f;
+    public float distanciaMaximaFuga = 7.0f; // O quão longe ele aceita ficar do player
 
     [Header("Status do Boss")]
     public float vidaTotal = 100f;
@@ -16,7 +19,8 @@ public class BossCerebro : MonoBehaviour
     [Header("Configurações de Invocação")]
     public GameObject prefabMinion; 
     public float tempoEntreInvocacoes = 6f; 
-    private bool estaInvocando = false; 
+    public int limiteMaximoMinions = 4; // 🚨 A NOVA TRAVA
+    private bool estaInvocando = false;
 
     [Header("Configurações de Ataque (Fase 2)")]
     public float distanciaParaIniciarAtaque = 6.0f; 
@@ -35,6 +39,8 @@ public class BossCerebro : MonoBehaviour
     private SpriteRenderer sr; 
     private Animator anim;
     
+    
+
     private bool estaAtordoado = false; 
     private CinemachineImpulseSource tremor;
     private bool naFase2 = false; 
@@ -57,7 +63,8 @@ public class BossCerebro : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (alvoJogador == null || estaAtordoado || estaInvocando)
+        // Trava total se estiver atordoado, invocando ou teleportando
+        if (alvoJogador == null || estaAtordoado || estaInvocando || estaTeletransportando)
         {
             rb.velocity = Vector2.zero;
             return;
@@ -70,13 +77,36 @@ public class BossCerebro : MonoBehaviour
         {
             if (!naFase2) 
             {
-                // FASE 1: Foge
-                direcao = (transform.position - alvoJogador.position).normalized; 
-                rb.MovePosition(rb.position + direcao * velocidade * Time.fixedDeltaTime);
+                // --- FASE 1: Foge até a distância máxima ---
+                if (distancia < distanciaMaximaFuga)
+                {
+                    direcao = (transform.position - alvoJogador.position).normalized; 
+                    
+                    // 🚨 Antena: Vê se tem parede atrás dele enquanto foge
+                    RaycastHit2D hitParede = Physics2D.Raycast(transform.position, direcao, 1.5f, LayerMask.GetMask("Obstaculo"));
+                    
+                    if (hitParede.collider != null)
+                    {
+                        StartCoroutine(RotinaTeletransporte()); // Encurralado! Teleporta!
+                    }
+                    else
+                    {
+                        rb.MovePosition(rb.position + direcao * velocidade * Time.fixedDeltaTime);
+                    }
+                }
+                else
+                {
+                    // Alcançou a distância segura! Fica parado e encara o jogador
+                    rb.velocity = Vector2.zero;
+                    direcao = Vector2.zero; 
+                    
+                    if (alvoJogador.position.x > transform.position.x) sr.flipX = false; 
+                    else sr.flipX = true;
+                }
             }
             else 
             {
-                // FASE 2: Caça e Ataca!
+                // --- 🚨 FASE 2: Caça, Desvia e Ataca (Estava faltando!) ---
                 if (!estaAtacando) 
                 {
                     if (distancia <= distanciaParaIniciarAtaque)
@@ -86,14 +116,13 @@ public class BossCerebro : MonoBehaviour
                     else 
                     {
                         direcao = (alvoJogador.position - transform.position).normalized; 
-                        rb.MovePosition(rb.position + direcao * velocidade * Time.fixedDeltaTime);
+                        
+                        // Chama a inteligência de desvio!
+                        Vector2 direcaoSegura = DesviarDeObstaculos(direcao);
+                        rb.MovePosition(rb.position + direcaoSegura * velocidade * Time.fixedDeltaTime);
                     }
                 }
             }
-        }
-        else
-        {
-            rb.velocity = Vector2.zero; 
         }
 
         // FlipX
@@ -194,7 +223,11 @@ public class BossCerebro : MonoBehaviour
         {
             yield return new WaitForSeconds(tempoEntreInvocacoes);
 
-            if (!naFase2 && !estaAtordoado)
+            // 🚨 CONTA QUANTOS MINIONS EXISTEM VIVOS
+            int minionsVivos = GameObject.FindGameObjectsWithTag("Minion").Length;
+
+            // Só invoca se não bateu o limite
+            if (!naFase2 && !estaAtordoado && minionsVivos < limiteMaximoMinions)
             {
                 estaInvocando = true;
                 rb.velocity = Vector2.zero; 
@@ -211,6 +244,45 @@ public class BossCerebro : MonoBehaviour
                 estaInvocando = false;
             }
         }
+    }
+    
+    private Vector2 DesviarDeObstaculos(Vector2 direcaoAlvo)
+    {
+        // Atira um raio 1.5 metros para frente buscando a Layer "Obstaculo"
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, direcaoAlvo, 1.5f, LayerMask.GetMask("Obstaculo"));
+        
+        if (hit.collider != null)
+        {
+            // Tem parede! Tenta desviar pela direita (Calcula a perpendicular)
+            Vector2 desvioDireita = new Vector2(-direcaoAlvo.y, direcaoAlvo.x); 
+            RaycastHit2D hitDesvio = Physics2D.Raycast(transform.position, desvioDireita, 1.5f, LayerMask.GetMask("Obstaculo"));
+            
+            if (hitDesvio.collider == null) return desvioDireita; // Direita livre!
+
+            // Se direita tá bloqueada, vai pela esquerda
+            return new Vector2(direcaoAlvo.y, -direcaoAlvo.x);
+        }
+        
+        return direcaoAlvo; // Caminho totalmente livre
+    }
+
+   private IEnumerator RotinaTeletransporte()
+    {
+        estaTeletransportando = true; // 🚨 Trava o Boss
+        rb.velocity = Vector2.zero;
+        
+        sr.color = new Color(1, 1, 1, 0.5f); // Fica transparente
+        
+        yield return new WaitForSeconds(0.4f);
+        
+        // Pula por cima do jogador para o lado oposto (8 metros)
+        Vector2 direcaoLonge = (transform.position - alvoJogador.position).normalized;
+        transform.position = (Vector2)alvoJogador.position + (direcaoLonge * 8f);
+        
+        sr.color = new Color(1, 1, 1, 1f); // Volta ao normal
+        yield return new WaitForSeconds(0.2f);
+        
+        estaTeletransportando = false; // 🚨 Libera o Boss
     }
 
     private IEnumerator RotinaTransformacaoFase2()
