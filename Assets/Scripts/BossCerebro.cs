@@ -63,7 +63,6 @@ public class BossCerebro : MonoBehaviour
 
     void FixedUpdate()
     {
-        // Trava total se estiver atordoado, invocando ou teleportando
         if (alvoJogador == null || estaAtordoado || estaInvocando || estaTeletransportando)
         {
             rb.velocity = Vector2.zero;
@@ -77,26 +76,33 @@ public class BossCerebro : MonoBehaviour
         {
             if (!naFase2) 
             {
-                // --- FASE 1: Foge até a distância máxima ---
-                if (distancia < distanciaMaximaFuga)
+                // --- FASE 1: MANTÉM A DISTÂNCIA (Efeito Elástico) ---
+                float margemTolerancia = 0.5f; // Evita que o Boss fique tremendo no mesmo lugar
+
+                if (distancia < (distanciaMaximaFuga - margemTolerancia))
                 {
+                    // 1. Player chegou muito perto: O Boss RECUA
                     direcao = (transform.position - alvoJogador.position).normalized; 
                     
-                    // 🚨 Antena: Vê se tem parede atrás dele enquanto foge
                     RaycastHit2D hitParede = Physics2D.Raycast(transform.position, direcao, 1.5f, LayerMask.GetMask("Obstaculo"));
-                    
                     if (hitParede.collider != null)
                     {
-                        StartCoroutine(RotinaTeletransporte()); // Encurralado! Teleporta!
+                        StartCoroutine(RotinaTeletransporte());
                     }
                     else
                     {
                         rb.MovePosition(rb.position + direcao * velocidade * Time.fixedDeltaTime);
                     }
                 }
+                else if (distancia > (distanciaMaximaFuga + margemTolerancia))
+                {
+                    // 2. Player se afastou demais: O Boss AVANÇA para manter a distância
+                    direcao = (alvoJogador.position - transform.position).normalized; 
+                    rb.MovePosition(rb.position + direcao * velocidade * Time.fixedDeltaTime);
+                }
                 else
                 {
-                    // Alcançou a distância segura! Fica parado e encara o jogador
+                    // 3. Está na distância perfeita: Fica parado encarando o jogador
                     rb.velocity = Vector2.zero;
                     direcao = Vector2.zero; 
                     
@@ -106,7 +112,7 @@ public class BossCerebro : MonoBehaviour
             }
             else 
             {
-                // --- 🚨 FASE 2: Caça, Desvia e Ataca (Estava faltando!) ---
+                // --- FASE 2: Caça, Desvia e Ataca ---
                 if (!estaAtacando) 
                 {
                     if (distancia <= distanciaParaIniciarAtaque)
@@ -116,8 +122,6 @@ public class BossCerebro : MonoBehaviour
                     else 
                     {
                         direcao = (alvoJogador.position - transform.position).normalized; 
-                        
-                        // Chama a inteligência de desvio!
                         Vector2 direcaoSegura = DesviarDeObstaculos(direcao);
                         rb.MovePosition(rb.position + direcaoSegura * velocidade * Time.fixedDeltaTime);
                     }
@@ -125,7 +129,7 @@ public class BossCerebro : MonoBehaviour
             }
         }
 
-        // FlipX
+        // FlipX (Só aplica se o Boss estiver se movendo)
         if (direcao != Vector2.zero) 
         {
             if (direcao.x > 0) sr.flipX = true; 
