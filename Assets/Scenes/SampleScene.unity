@@ -13001,6 +13001,10 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8836703140948888317, guid: b45dfe42add803b4281f4fe1c59c49f5, type: 3}
+      propertyPath: vidaTotal
+      value: 200
+      objectReference: {fileID: 0}
+    - target: {fileID: 8836703140948888317, guid: b45dfe42add803b4281f4fe1c59c49f5, type: 3}
       propertyPath: prefabMinion
       value: 
       objectReference: {fileID: 3643729423473654907, guid: bee3bcf97ec7a364993736e4127db00c, type: 3}
@@ -13026,7 +13030,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8836703140948888317, guid: b45dfe42add803b4281f4fe1c59c49f5, type: 3}
       propertyPath: limiteMaximoMinions
-      value: 4
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 8836703140948888317, guid: b45dfe42add803b4281f4fe1c59c49f5, type: 3}
       propertyPath: tempoEntreInvocacoes
@@ -13056,12 +13060,20 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2932930560174820518, guid: e207b8b6011ad9d48a999e6ad5d10e3f, type: 3}
       propertyPath: moveSpeed
-      value: 4
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2932930560174820518, guid: e207b8b6011ad9d48a999e6ad5d10e3f, type: 3}
+      propertyPath: vidaTotal
+      value: 150
       objectReference: {fileID: 0}
     - target: {fileID: 2932930560174820518, guid: e207b8b6011ad9d48a999e6ad5d10e3f, type: 3}
       propertyPath: hudDocument
       value: 
       objectReference: {fileID: 366362671}
+    - target: {fileID: 2932930560174820518, guid: e207b8b6011ad9d48a999e6ad5d10e3f, type: 3}
+      propertyPath: danoDoEspecial
+      value: 30
+      objectReference: {fileID: 0}
     - target: {fileID: 4673432662182254537, guid: e207b8b6011ad9d48a999e6ad5d10e3f, type: 3}
       propertyPath: m_ActionEvents.Array.size
       value: 14

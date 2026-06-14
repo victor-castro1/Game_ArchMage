@@ -38,7 +38,7 @@ public class MovimentoJogador : MonoBehaviour
 
     [Header("Status do Jogador")]
     public float vidaTotal = 100f;
-    private float vidaMaxima = 100f;
+    private float vidaMaxima; // Retirado o valor fixo daqui
     private bool estaMorto = false;
     private bool estaAtacando = false;
     private bool estaAtordoado = false;
@@ -54,6 +54,9 @@ public class MovimentoJogador : MonoBehaviour
         animator = GetComponent<Animator>();
         sr = GetComponent<SpriteRenderer>();
         materialOriginal = sr.material;
+
+        // 🚨 CORREÇÃO CRÍTICA: Garante que a vida máxima seja o que você colocou no Inspector!
+        vidaMaxima = vidaTotal;
 
         // 🚨 CONECTA AS BARRAS DA INTERFACE
         if (hudDocument != null)
@@ -110,7 +113,7 @@ public class MovimentoJogador : MonoBehaviour
             }
         }
         
-        // 🚨 BOTÃO TEMPORÁRIO PARA O ESPECIAL (Até você mapear no Input System)
+        // BOTÃO TEMPORÁRIO PARA O ESPECIAL (Até você mapear no Input System)
         if (Input.GetKeyDown(KeyCode.Space) && especialAtual >= especialMaximo && moveInput.sqrMagnitude > 0)
         {
             StartCoroutine(RotinaAtaqueEspecial(moveInput));
@@ -127,7 +130,7 @@ public class MovimentoJogador : MonoBehaviour
         {
             if (Time.time - ultimoTempoAperto <= tempoDuploClique && Vector2.Distance(moveInput, ultimaDirecaoApertada) < 0.1f)
             {
-                // 🚨 SÓ DÁ DASH SE TIVER FÔLEGO (AZUL)
+                // SÓ DÁ DASH SE TIVER FÔLEGO (AZUL)
                 if (!estaDandoDash && folegoAtual >= custoDash) 
                 {
                     folegoAtual -= custoDash;
@@ -168,17 +171,16 @@ public class MovimentoJogador : MonoBehaviour
         
         vidaTotal -= dano;
 
-        // 🚨 A TRAVA: Se a vida cair abaixo de zero, crava ela no zero absoluto.
         if (vidaTotal < 0f) 
         {
             vidaTotal = 0f;
         }
 
-        AtualizarHUD(); // Agora a barra nunca vai calcular uma escala negativa
+        AtualizarHUD(); 
 
         StartCoroutine(RotinaFlash());
         
-        if (vidaTotal <= 0) // O <= 0 continua funcionando perfeitamente
+        if (vidaTotal <= 0) 
         {
             StartCoroutine(RotinaMorte());
         }
@@ -189,25 +191,36 @@ public class MovimentoJogador : MonoBehaviour
         }
     }
 
-    // 🚨 MÉTODO QUE A FOICE CHAMA QUANDO ACERTA
     public void GanharEspecial()
     {
         if (especialAtual < especialMaximo)
         {
             especialAtual += ganhoPorAcerto;
             if (especialAtual > especialMaximo) especialAtual = especialMaximo;
-            AtualizarHUD(); // 🚨 ATUALIZA BARRA VERDE
+            AtualizarHUD(); 
         }
     }
 
-    // 🚨 CONTROLA O VISUAL DAS BARRAS
+    // 🚨 CONTROLA O VISUAL DAS BARRAS COM MATEMÁTICA DE PORCENTAGEM SEGURA
     private void AtualizarHUD()
     {
-        // Usa transform.scale em vez de style.width. 
-        // O Vector3 funciona assim: (escalaX, escalaY, escalaZ). O 1f mantém o tamanho original.
-        if (barraVida != null) barraVida.transform.scale = new Vector3(vidaTotal / vidaMaxima, 1f, 1f);
-        if (barraFolego != null) barraFolego.transform.scale = new Vector3(folegoAtual / folegoMaximo, 1f, 1f);
-        if (barraEspecial != null) barraEspecial.transform.scale = new Vector3(especialAtual / especialMaximo, 1f, 1f);
+        if (barraVida != null)
+        {
+            float pctVida = Mathf.Clamp(vidaTotal / vidaMaxima, 0f, 1f);
+            barraVida.transform.scale = new Vector3(pctVida, 1f, 1f);
+        }
+        
+        if (barraFolego != null)
+        {
+            float pctFolego = Mathf.Clamp(folegoAtual / folegoMaximo, 0f, 1f);
+            barraFolego.transform.scale = new Vector3(pctFolego, 1f, 1f);
+        }
+        
+        if (barraEspecial != null)
+        {
+            float pctEspecial = Mathf.Clamp(especialAtual / especialMaximo, 0f, 1f);
+            barraEspecial.transform.scale = new Vector3(pctEspecial, 1f, 1f);
+        }
     }
 
     // --- CORROTINAS ---
@@ -217,7 +230,6 @@ public class MovimentoJogador : MonoBehaviour
         animator.SetBool("isWalking", false);
         AtualizarHUD(); 
         
-        // 🚨 FICA INTANGÍVEL: Ignora colisão física com a Layer "Inimigo"
         Physics2D.IgnoreLayerCollision(LayerMask.NameToLayer("Player"), LayerMask.NameToLayer("Inimigo"), true);
 
         rb.velocity = direcao * velocidadeDash;
@@ -226,7 +238,6 @@ public class MovimentoJogador : MonoBehaviour
         rb.velocity = Vector2.zero;
         estaDandoDash = false;
 
-        // 🚨 VOLTA AO NORMAL: Reativa a colisão
         Physics2D.IgnoreLayerCollision(LayerMask.NameToLayer("Player"), LayerMask.NameToLayer("Inimigo"), false);
     }
 
@@ -239,7 +250,6 @@ public class MovimentoJogador : MonoBehaviour
         animator.SetTrigger("Attack"); 
         sr.color = Color.cyan; 
 
-        // 🚨 FICA INTANGÍVEL TAMBÉM NO ESPECIAL
         Physics2D.IgnoreLayerCollision(LayerMask.NameToLayer("Player"), LayerMask.NameToLayer("Inimigo"), true);
 
         rb.velocity = direcao * (velocidadeDash * 1.5f); 
@@ -262,7 +272,6 @@ public class MovimentoJogador : MonoBehaviour
         sr.color = Color.white; 
         estaDandoDash = false;
 
-        // 🚨 VOLTA AO NORMAL
         Physics2D.IgnoreLayerCollision(LayerMask.NameToLayer("Player"), LayerMask.NameToLayer("Inimigo"), false);
     }
 
