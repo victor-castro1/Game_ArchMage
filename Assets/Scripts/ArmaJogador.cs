@@ -9,9 +9,12 @@ public class ArmaJogador : MonoBehaviour
         // Se a foice bater na Hitbox do Boss (que agora é um objeto filho)
         if (collision.CompareTag("Boss"))
         {
-            // O 'InParent' sobe na hierarquia para achar o BossCerebro no objeto principal!
             BossCerebro boss = collision.GetComponentInParent<BossCerebro>();
-            if (boss != null) boss.ReceberDano(danoDoAtaque);
+            if (boss != null) 
+            {
+                boss.ReceberDano(danoDoAtaque);
+                GetComponentInParent<MovimentoJogador>().GanharEspecial();
+            }
         }
 
         // Se a foice bater na Hitbox de um Slime

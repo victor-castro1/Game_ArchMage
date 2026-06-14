@@ -168,7 +168,7 @@ TextureImporter:
         width: 22
         height: 22
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -176,6 +176,27 @@ TextureImporter:
       bones: []
       spriteID: d0b35fcf84c7bb6429dec59e901c4562
       internalID: 793808506
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bar_green
+      rect:
+        serializedVersion: 2
+        x: 15
+        y: 10
+        width: 38
+        height: 2
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d0b95d65fa42aee4b84699dacf6141da
+      internalID: 841983997
       vertices: []
       indices: 
       edges: []
@@ -193,6 +214,7 @@ TextureImporter:
     nameFileIdTable:
       bar_fill_hp: 381326054
       bar_fill_mp: 2093161683
+      bar_green: 841983997
       hud_avatar: 793808506
       hud_player_frame: -1883652620
   mipmapLimitGroupName: 

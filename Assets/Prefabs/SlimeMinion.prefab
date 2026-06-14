@@ -90,7 +90,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8055fde6f4f468f4991de5dddd02379a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  danoDoAtaque: 15
+  danoDoAtaque: 10
 --- !u!1 &3643729423473654907
 GameObject:
   m_ObjectHideFlags: 0

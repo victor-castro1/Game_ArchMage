@@ -1,17 +1,25 @@
 using UnityEngine;
 using System.Collections;
 using Cinemachine;
+using UnityEngine.UIElements;
 
 public class BossCerebro : MonoBehaviour
 {
     private bool estaTeletransportando = false;
+
+    [Header("UI do Boss")]
+    public UIDocument mainHudDocument; 
+    private VisualElement bossPanel;
+    private VisualElement bossHpBar;
+    private float vidaMaximaBoss;
+    private VisualElement filtroEscuro;
     
     [Header("Configurações de Movimento")]
     public float velocidade = 3.0f;
     public float raioDeteccao = 10f;
     public float distanciaMaximaFuga = 7.0f; 
     [Tooltip("Distância do raio de detecção de paredes. Aumente se o Boss for muito grande.")]
-    public float distanciaRaycast = 3.5f; // 🚨 AJUSTE PARA O TAMANHO DELE (Escala 3)
+    public float distanciaRaycast = 3.5f; 
 
     [Header("Status do Boss")]
     public float vidaTotal = 100f;
@@ -27,8 +35,8 @@ public class BossCerebro : MonoBehaviour
     public float distanciaParaIniciarAtaque = 6.0f; 
     public float velocidadeDash = 20f; 
     public float tempoDash = 0.2f; 
-    public float tempoAtaque = 0.8f; // Reduzido um pouco para dar agilidade
-    public float tempoRecuperacao = 1.2f; // Reduzido um pouco para ser mais responsivo
+    public float tempoAtaque = 0.8f; 
+    public float tempoRecuperacao = 1.2f; 
     private bool estaAtacando = false;
     private bool emCooldownAtaque = false; 
 
@@ -48,6 +56,8 @@ public class BossCerebro : MonoBehaviour
 
     private Vector3 escalaOriginal;
 
+    private bool jogadorDetectado = false;
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -60,14 +70,23 @@ public class BossCerebro : MonoBehaviour
         GameObject jogadorObj = GameObject.FindGameObjectWithTag("Player");
         if (jogadorObj != null) alvoJogador = jogadorObj.transform;
 
-        StartCoroutine(RotinaInvocacao());
-
+        //StartCoroutine(RotinaInvocacao());
+       
         escalaOriginal = transform.localScale;
+
+        vidaMaximaBoss = vidaTotal;
+
+        if (mainHudDocument != null)
+        {
+            var root = mainHudDocument.rootVisualElement;
+            bossPanel = root.Q<VisualElement>("boss-panel");
+            bossHpBar = root.Q<VisualElement>("boss-hp-bar");
+            filtroEscuro = root.Q<VisualElement>("filtro-escuro"); 
+        }
     }
 
     void FixedUpdate()
     {
-       // 🚨 FIX: Se estiver morto ou o script desligado, ignora a física imediatamente
         if (estaMorto || !this.enabled) return;
 
         if (alvoJogador == null || estaAtordoado || estaInvocando || estaTeletransportando || estaAtacando)
@@ -81,6 +100,17 @@ public class BossCerebro : MonoBehaviour
 
         if (distancia <= raioDeteccao)
         {
+            // 🚨 Limpo: Apenas uma chamada para ligar o HUD e o Filtro
+            if (bossPanel != null) bossPanel.style.display = DisplayStyle.Flex;
+            if (filtroEscuro != null) filtroEscuro.style.display = DisplayStyle.Flex;
+
+            if (!jogadorDetectado)
+            {
+                jogadorDetectado = true;
+                if (tremor != null) tremor.GenerateImpulse();
+                StartCoroutine(RotinaInvocacao());
+            }
+
             if (!naFase2) 
             {
                 // --- FASE 1: MANTÉM A DISTÂNCIA ---
@@ -90,7 +120,6 @@ public class BossCerebro : MonoBehaviour
                 {
                     direcao = (transform.position - alvoJogador.position).normalized; 
                     
-                    // 🚨 FIX: Raio estendido usando distanciaRaycast
                     RaycastHit2D hitParede = Physics2D.Raycast(transform.position, direcao, distanciaRaycast, LayerMask.GetMask("Obstaculo"));
                     if (hitParede.collider != null)
                     {
@@ -131,7 +160,6 @@ public class BossCerebro : MonoBehaviour
                 }
                 else
                 {
-                    // 🚨 FIX MAIS RESPONSIVO: Em vez de congelar, ele persegue mais devagar (40% da velocidade) durante o cooldown!
                     direcao = (alvoJogador.position - transform.position).normalized; 
                     Vector2 direcaoSegura = DesviarDeObstaculos(direcao);
                     rb.MovePosition(rb.position + direcaoSegura * (velocidade * 0.4f) * Time.fixedDeltaTime);
@@ -170,17 +198,31 @@ public class BossCerebro : MonoBehaviour
         vidaTotal -= quantidadeDano;
         StartCoroutine(RotinaFlash());
 
-        if (vidaTotal <= 0) 
+        if (bossHpBar != null)
         {
-            StartCoroutine(RotinaMorte());
+            float porcentagem = Mathf.Clamp(vidaTotal / vidaMaximaBoss, 0f, 1f);
+            bossHpBar.transform.scale = new Vector3(porcentagem, 1f, 1f);
         }
-        else if (vidaTotal <= 50f && !naFase2)
+
+        // 🚨 AJUSTE: Gatilho da Fase 2 (50% da vida)
+        if (!naFase2 && vidaTotal <= (vidaMaximaBoss / 2))
         {
             StartCoroutine(RotinaTransformacaoFase2());
         }
+        
+        if (vidaTotal <= 0) 
+        {
+            if (bossPanel != null) bossPanel.style.display = DisplayStyle.None;
+            if (filtroEscuro != null) filtroEscuro.style.display = DisplayStyle.None; 
+            StartCoroutine(RotinaMorte());
+        }
         else
         {
-            StartCoroutine(RotinaAtordoamento());
+            // 🚨 AJUSTE: Impede atordoamento se ele estiver no meio de um ataque
+            if (!estaAtacando) 
+            {
+                StartCoroutine(RotinaAtordoamento());
+            }
         }
     }
 
@@ -189,9 +231,8 @@ public class BossCerebro : MonoBehaviour
         estaMorto = true;
         estaAtordoado = true; 
         rb.velocity = Vector2.zero;
-        rb.bodyType = RigidbodyType2D.Static; // 🚨 FIX: Congela o corpo fisicamente no mapa
+        rb.bodyType = RigidbodyType2D.Static; 
 
-        // 🚨 FIX: Desativa todos os colisores (incluindo os filhos de dano) para o player passar por cima do cadáver
         foreach (Collider2D col in GetComponentsInChildren<Collider2D>())
         {
             col.enabled = false;
@@ -200,7 +241,7 @@ public class BossCerebro : MonoBehaviour
         anim.SetTrigger("SofreuDano"); 
         yield return new WaitForSeconds(1.0f); 
 
-        this.enabled = false; // 🚨 FIX: Desativa o script do cérebro, mas preserva o SpriteRenderer na cena!
+        this.enabled = false; 
     }
 
     private IEnumerator RotinaAtaque()
@@ -260,7 +301,6 @@ public class BossCerebro : MonoBehaviour
                     Vector3 posEsquerda = transform.position + new Vector3(-2.5f, 0, 0);
                     Vector3 posDireita = transform.position + new Vector3(2.5f, 0, 0);
 
-                    // 🚨 FIX ANTIVAZAMENTO: Se a parede do castelo estiver no ponto, invoca no pé do boss
                     if (Physics2D.OverlapCircle(posEsquerda, 0.6f, LayerMask.GetMask("Obstaculo"))) posEsquerda = transform.position;
                     if (Physics2D.OverlapCircle(posDireita, 0.6f, LayerMask.GetMask("Obstaculo"))) posDireita = transform.position;
 
@@ -276,7 +316,6 @@ public class BossCerebro : MonoBehaviour
     
     private Vector2 DesviarDeObstaculos(Vector2 direcaoAlvo)
     {
-        // 🚨 FIX: Raio estendido usando distanciaRaycast
         RaycastHit2D hit = Physics2D.Raycast(transform.position, direcaoAlvo, distanciaRaycast, LayerMask.GetMask("Obstaculo"));
         if (hit.collider != null)
         {
@@ -292,32 +331,24 @@ public class BossCerebro : MonoBehaviour
     {
         estaTeletransportando = true; 
         rb.velocity = Vector2.zero;
-        sr.color = new Color(1, 1, 1, 0.5f); // Fica meio transparente
+        sr.color = new Color(1, 1, 1, 0.5f); 
         yield return new WaitForSeconds(0.4f);
         
-        // Calcula a direção (fugindo do jogador) e a distância que ele quer ir
         Vector2 direcaoLonge = (transform.position - alvoJogador.position).normalized;
         float distanciaDesejada = 7f;
 
-        // 🚨 O NOVO CÁLCULO (À prova de vazamento do mapa)
-        // Atira um laser do jogador até o ponto de teleporte.
         RaycastHit2D hit = Physics2D.Raycast(alvoJogador.position, direcaoLonge, distanciaDesejada, LayerMask.GetMask("Obstaculo"));
 
         if (hit.collider != null)
         {
-            // Se o laser bateu na parede, ele encurta o teleporte para parar 2 metros ANTES da parede
-            // (2 metros é uma margem de segurança boa por causa do tamanho gigante dele)
             distanciaDesejada = hit.distance - 2.0f; 
-            
-            // Se o jogador estiver tão imprensado na parede que a distância ficar negativa, ele não teleporta pra longe
             if (distanciaDesejada < 0) distanciaDesejada = 0;
         }
 
-        // Aplica o teleporte seguro
         Vector2 destinoTeleporte = (Vector2)alvoJogador.position + (direcaoLonge * distanciaDesejada);
         transform.position = destinoTeleporte;
         
-        sr.color = new Color(1, 1, 1, 1f); // Volta ao normal
+        sr.color = new Color(1, 1, 1, 1f); 
         yield return new WaitForSeconds(0.2f);
         estaTeletransportando = false; 
     }
