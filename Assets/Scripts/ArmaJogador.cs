@@ -6,22 +6,18 @@ public class ArmaJogador : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        // Se a foice bater no Boss (Real ou de Teste)
+        // Se a foice bater na Hitbox do Boss (que agora é um objeto filho)
         if (collision.CompareTag("Boss"))
         {
-            // Tenta dar dano no Boss Real
-            BossCerebro bossReal = collision.GetComponent<BossCerebro>();
-            if (bossReal != null) bossReal.ReceberDano(danoDoAtaque);
-
-            // Tenta dar dano no Boss de Teste (Novo)
-            BossTesteHitbox bossTeste = collision.GetComponent<BossTesteHitbox>();
-            if (bossTeste != null) bossTeste.ReceberDano(danoDoAtaque);
+            // O 'InParent' sobe na hierarquia para achar o BossCerebro no objeto principal!
+            BossCerebro boss = collision.GetComponentInParent<BossCerebro>();
+            if (boss != null) boss.ReceberDano(danoDoAtaque);
         }
 
-        // Se a foice bater em um Slime
+        // Se a foice bater na Hitbox de um Slime
         if (collision.CompareTag("Minion"))
         {
-            SlimeIA slime = collision.GetComponent<SlimeIA>();
+            SlimeIA slime = collision.GetComponentInParent<SlimeIA>();
             if (slime != null) slime.ReceberDano(danoDoAtaque);
         }
     }
