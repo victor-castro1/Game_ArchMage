@@ -4,13 +4,12 @@ using Cinemachine;
 
 public class BossCerebro : MonoBehaviour
 {
-
     private bool estaTeletransportando = false;
     
     [Header("Configurações de Movimento")]
     public float velocidade = 3.0f;
     public float raioDeteccao = 10f;
-    public float distanciaMaximaFuga = 7.0f; // O quão longe ele aceita ficar do player
+    public float distanciaMaximaFuga = 7.0f; 
 
     [Header("Status do Boss")]
     public float vidaTotal = 100f;
@@ -19,16 +18,17 @@ public class BossCerebro : MonoBehaviour
     [Header("Configurações de Invocação")]
     public GameObject prefabMinion; 
     public float tempoEntreInvocacoes = 6f; 
-    public int limiteMaximoMinions = 4; // 🚨 A NOVA TRAVA
+    public int limiteMaximoMinions = 4; 
     private bool estaInvocando = false;
 
     [Header("Configurações de Ataque (Fase 2)")]
     public float distanciaParaIniciarAtaque = 6.0f; 
-    public float velocidadeDash = 15f; 
+    public float velocidadeDash = 20f; // Aumentei um pouco para dar mais impacto
     public float tempoDash = 0.2f; 
     public float tempoAtaque = 1.0f; 
     public float tempoRecuperacao = 1.5f; 
     private bool estaAtacando = false;
+    private bool emCooldownAtaque = false; // 🚨 NOVA TRAVA PARA NÃO SPAMMAR DASH
 
     [Header("Efeito de Dano")]
     public Material materialFlash; 
@@ -39,12 +39,9 @@ public class BossCerebro : MonoBehaviour
     private SpriteRenderer sr; 
     private Animator anim;
     
-    
-
     private bool estaAtordoado = false; 
     private CinemachineImpulseSource tremor;
     private bool naFase2 = false; 
-
 
     void Start()
     {
@@ -63,9 +60,10 @@ public class BossCerebro : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (alvoJogador == null || estaAtordoado || estaInvocando || estaTeletransportando)
+        if (alvoJogador == null || estaAtordoado || estaInvocando || estaTeletransportando || estaAtacando)
         {
-            rb.velocity = Vector2.zero;
+            // Se estiver no meio do ataque (dash), a rotina de ataque assume o controle da velocidade
+            if (!estaAtacando) rb.velocity = Vector2.zero;
             return;
         }
 
@@ -76,14 +74,12 @@ public class BossCerebro : MonoBehaviour
         {
             if (!naFase2) 
             {
-                // --- FASE 1: MANTÉM A DISTÂNCIA (Efeito Elástico) ---
-                float margemTolerancia = 0.5f; // Evita que o Boss fique tremendo no mesmo lugar
+                // --- FASE 1: MANTÉM A DISTÂNCIA ---
+                float margemTolerancia = 0.5f; 
 
                 if (distancia < (distanciaMaximaFuga - margemTolerancia))
                 {
-                    // 1. Player chegou muito perto: O Boss RECUA
                     direcao = (transform.position - alvoJogador.position).normalized; 
-                    
                     RaycastHit2D hitParede = Physics2D.Raycast(transform.position, direcao, 1.5f, LayerMask.GetMask("Obstaculo"));
                     if (hitParede.collider != null)
                     {
@@ -96,16 +92,13 @@ public class BossCerebro : MonoBehaviour
                 }
                 else if (distancia > (distanciaMaximaFuga + margemTolerancia))
                 {
-                    // 2. Player se afastou demais: O Boss AVANÇA para manter a distância
                     direcao = (alvoJogador.position - transform.position).normalized; 
                     rb.MovePosition(rb.position + direcao * velocidade * Time.fixedDeltaTime);
                 }
                 else
                 {
-                    // 3. Está na distância perfeita: Fica parado encarando o jogador
                     rb.velocity = Vector2.zero;
                     direcao = Vector2.zero; 
-                    
                     if (alvoJogador.position.x > transform.position.x) sr.flipX = false; 
                     else sr.flipX = true;
                 }
@@ -113,7 +106,8 @@ public class BossCerebro : MonoBehaviour
             else 
             {
                 // --- FASE 2: Caça, Desvia e Ataca ---
-                if (!estaAtacando) 
+                // Só caça se não estiver atirando E não estiver cansado do último golpe
+                if (!emCooldownAtaque) 
                 {
                     if (distancia <= distanciaParaIniciarAtaque)
                     {
@@ -126,10 +120,14 @@ public class BossCerebro : MonoBehaviour
                         rb.MovePosition(rb.position + direcaoSegura * velocidade * Time.fixedDeltaTime);
                     }
                 }
+                else
+                {
+                    rb.velocity = Vector2.zero; // Fica parado recuperando o fôlego
+                }
             }
         }
 
-        // FlipX (Só aplica se o Boss estiver se movendo)
+        // FlipX do movimento normal
         if (direcao != Vector2.zero) 
         {
             if (direcao.x > 0) sr.flipX = true; 
@@ -147,13 +145,10 @@ public class BossCerebro : MonoBehaviour
         if (estaAtordoado) return; 
 
         vidaTotal -= quantidadeDano;
-        
-        // Trigger de feedback visual de dano
         StartCoroutine(RotinaFlash());
 
         if (vidaTotal <= 0) 
         {
-            // 🚨 AGORA ELE CHAMA A ROTINA DE MORTE
             StartCoroutine(RotinaMorte());
         }
         else if (vidaTotal <= 50f && !naFase2)
@@ -168,23 +163,14 @@ public class BossCerebro : MonoBehaviour
 
     private IEnumerator RotinaMorte()
     {
-        // 1. Congela o Boss
         estaAtordoado = true; 
         rb.velocity = Vector2.zero;
-        rb.isKinematic = true; // Impede que forças externas empurrem ele enquanto morre
-        
-        // 2. Toca a animação de dano final (o "Hurt" que reaproveitamos)
+        rb.isKinematic = true; 
         anim.SetTrigger("SofreuDano"); 
-
-        // 3. Opcional: Feedback final (Flash Branco ou redução de alpha)
-        // Se quiser que ele desapareça piscando, pode adicionar aqui
-        
-        // 4. Espera o tempo da animação/feedback
         yield return new WaitForSeconds(1.0f); 
-        
-        // 5. Remove da cena
         Destroy(gameObject); 
     }
+
     private IEnumerator RotinaAtaque()
     {
         estaAtacando = true;
@@ -192,45 +178,45 @@ public class BossCerebro : MonoBehaviour
 
         Vector2 posicaoAlvo = alvoJogador.position;
         Vector2 direcaoDash = (posicaoAlvo - (Vector2)transform.position).normalized;
+        
+        // 🚨 FIX: Ajusta o olhar dele ANTES de pular (não ataca mais de costas)
+        if (direcaoDash.x > 0) sr.flipX = true; 
+        else if (direcaoDash.x < 0) sr.flipX = false;
+
+        // Animação de se preparar
         yield return new WaitForSeconds(0.4f); 
 
-        float timer = 0f;
-        while (timer < tempoDash)
-        {
-            rb.MovePosition(rb.position + direcaoDash * velocidadeDash * Time.fixedDeltaTime);
-            timer += Time.fixedDeltaTime;
-            yield return new WaitForFixedUpdate();
-        }
-
+        // 🚨 FIX: Dash Explosivo usando Física (Mata o efeito flutuante)
+        rb.velocity = direcaoDash * velocidadeDash;
+        yield return new WaitForSeconds(tempoDash);
+        
+        // Freia bruscamente
         rb.velocity = Vector2.zero; 
         anim.SetTrigger("Atacar"); 
         
         yield return new WaitForSeconds(tempoAtaque); 
-        yield return new WaitForSeconds(tempoRecuperacao); 
 
+        // 🚨 FIX: Inicia o cooldown DEPOIS de soltar o controle do movimento
         estaAtacando = false; 
+        emCooldownAtaque = true;
+        yield return new WaitForSeconds(tempoRecuperacao); 
+        emCooldownAtaque = false;
     }
 
     private IEnumerator RotinaFlash()
     {
-        // Troca o material atual pelo material de flash
         sr.material = materialFlash; 
-        
-        yield return new WaitForSeconds(0.1f); // Duração
-        
-        // Volta para o material original
+        yield return new WaitForSeconds(0.1f); 
         sr.material = materialOriginal; 
     }
+
     private IEnumerator RotinaInvocacao()
     {
         while (true) 
         {
             yield return new WaitForSeconds(tempoEntreInvocacoes);
-
-            // 🚨 CONTA QUANTOS MINIONS EXISTEM VIVOS
             int minionsVivos = GameObject.FindGameObjectsWithTag("Minion").Length;
 
-            // Só invoca se não bateu o limite
             if (!naFase2 && !estaAtordoado && minionsVivos < limiteMaximoMinions)
             {
                 estaInvocando = true;
@@ -252,41 +238,30 @@ public class BossCerebro : MonoBehaviour
     
     private Vector2 DesviarDeObstaculos(Vector2 direcaoAlvo)
     {
-        // Atira um raio 1.5 metros para frente buscando a Layer "Obstaculo"
         RaycastHit2D hit = Physics2D.Raycast(transform.position, direcaoAlvo, 1.5f, LayerMask.GetMask("Obstaculo"));
-        
         if (hit.collider != null)
         {
-            // Tem parede! Tenta desviar pela direita (Calcula a perpendicular)
             Vector2 desvioDireita = new Vector2(-direcaoAlvo.y, direcaoAlvo.x); 
             RaycastHit2D hitDesvio = Physics2D.Raycast(transform.position, desvioDireita, 1.5f, LayerMask.GetMask("Obstaculo"));
-            
-            if (hitDesvio.collider == null) return desvioDireita; // Direita livre!
-
-            // Se direita tá bloqueada, vai pela esquerda
+            if (hitDesvio.collider == null) return desvioDireita; 
             return new Vector2(direcaoAlvo.y, -direcaoAlvo.x);
         }
-        
-        return direcaoAlvo; // Caminho totalmente livre
+        return direcaoAlvo; 
     }
 
    private IEnumerator RotinaTeletransporte()
     {
-        estaTeletransportando = true; // 🚨 Trava o Boss
+        estaTeletransportando = true; 
         rb.velocity = Vector2.zero;
-        
-        sr.color = new Color(1, 1, 1, 0.5f); // Fica transparente
-        
+        sr.color = new Color(1, 1, 1, 0.5f); 
         yield return new WaitForSeconds(0.4f);
         
-        // Pula por cima do jogador para o lado oposto (8 metros)
         Vector2 direcaoLonge = (transform.position - alvoJogador.position).normalized;
         transform.position = (Vector2)alvoJogador.position + (direcaoLonge * 8f);
         
-        sr.color = new Color(1, 1, 1, 1f); // Volta ao normal
+        sr.color = new Color(1, 1, 1, 1f); 
         yield return new WaitForSeconds(0.2f);
-        
-        estaTeletransportando = false; // 🚨 Libera o Boss
+        estaTeletransportando = false; 
     }
 
     private IEnumerator RotinaTransformacaoFase2()
@@ -297,7 +272,6 @@ public class BossCerebro : MonoBehaviour
 
         anim.SetTrigger("GritoFase2");
         anim.SetBool("Fase2", true);
-        
         if (tremor != null) tremor.GenerateImpulse();
 
         yield return new WaitForSeconds(2.5f); 
