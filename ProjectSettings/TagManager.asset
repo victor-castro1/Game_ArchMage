@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Undefined
   - Minion
+  - Boss
   layers:
   - Default
   - TransparentFX
@@ -13,7 +14,7 @@ TagManager:
   - Confiner
   - Water
   - UI
-  - 
+  - Inimigo
   - 
   - 
   - 

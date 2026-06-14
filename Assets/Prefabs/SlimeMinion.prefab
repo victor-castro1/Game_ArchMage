@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 5249789762400634395}
   - component: {fileID: 131571224906446071}
   - component: {fileID: 7245228984801477707}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: SlimeMinion
   m_TagString: Minion
   m_Icon: {fileID: 0}

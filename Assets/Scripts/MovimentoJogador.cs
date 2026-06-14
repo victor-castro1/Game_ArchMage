@@ -11,6 +11,14 @@ public class MovimentoJogador : MonoBehaviour
     private Vector2 moveInput;
     private Animator animator;
 
+    [Header("Dash do Jogador")]
+    public float velocidadeDash = 15f;
+    public float tempoDash = 0.2f;
+    public float tempoDuploClique = 0.3f; // Tempo máximo entre os cliques para ativar o dash
+    private bool estaDandoDash = false;
+    private float ultimoTempoAperto;
+    private Vector2 ultimaDirecaoApertada;
+
     [Header("Status do Jogador")]
     public float vidaTotal = 100f;
     private bool estaMorto = false;
@@ -33,16 +41,16 @@ public class MovimentoJogador : MonoBehaviour
 
     void Update()
     {
-        if (estaMorto || estaAtordoado)
+        // 🚨 TRAVA DE MOVIMENTO
+        if (estaMorto || estaAtacando || estaAtordoado || estaDandoDash)
         {
-            rb.velocity = Vector2.zero;
+            // O Dash comanda a própria velocidade, então não zeramos se estiver dando dash
+            if (!estaDandoDash) rb.velocity = Vector2.zero; 
             return;
         }
 
         rb.velocity = moveInput * moveSpeed; 
 
-        // --- BOTOES DE TESTE (Apenas para desenvolvimento) ---
-        
         // Aperte 'H' para causar 25 de dano no próprio jogador
         if (Input.GetKeyDown(KeyCode.H))
         {
@@ -51,51 +59,52 @@ public class MovimentoJogador : MonoBehaviour
         }
     }
 
-    // Método já chamado pelo Input System para Andar
     public void Move(InputAction.CallbackContext context)
     {
-        // Se estiver travado, ignora a leitura do controle/teclado
         if (estaMorto || estaAtacando || estaAtordoado) return;
 
-        // 1. Lê a direção que o jogador está apertando agora
         moveInput = context.ReadValue<Vector2>();   
 
-        // 2. Se a direção for maior que zero (ou seja, ele está apertando algo)
+        // --- LÓGICA DO DUPLO CLIQUE (DASH) ---
+        if (context.started && moveInput.sqrMagnitude > 0)
+        {
+            // Verifica se a mesma direção foi apertada rapidamente
+            if (Time.time - ultimoTempoAperto <= tempoDuploClique && Vector2.Distance(moveInput, ultimaDirecaoApertada) < 0.1f)
+            {
+                if (!estaDandoDash) StartCoroutine(RotinaDash(moveInput));
+            }
+            
+            ultimoTempoAperto = Time.time;
+            ultimaDirecaoApertada = moveInput;
+        }
+
+        // --- LÓGICA DE ANIMAÇÃO ---
         if (moveInput.sqrMagnitude > 0) 
         {
             animator.SetBool("isWalking", true);
-            
-            // Salva a direção na memória IMEDIATAMENTE e o tempo todo
             animator.SetFloat("LastInputX", moveInput.x);
             animator.SetFloat("LastInputY", moveInput.y);
         }
         else 
         {
-            // Se for zero (soltou o controle), ele para, mas NÃO apaga a memória!
             animator.SetBool("isWalking", false);
         }
 
-        // 3. Alimenta o Blend Tree de caminhada normalmente
         animator.SetFloat("InputX", moveInput.x);
         animator.SetFloat("InputY", moveInput.y);
     }
 
-    // --- LÓGICA DE COMBATE ABAIXO ---
-
-    // 1. Método para ser chamado pelo Input System (Ex: Botão de Tiro/Espada)
     public void Atacar(InputAction.CallbackContext context)
     {
-        // context.started garante que ele só ataque 1 vez quando você apertar o botão (não metralha se segurar)
-        if (context.started && !estaAtacando && !estaMorto && !estaAtordoado)
+        if (context.started && !estaAtacando && !estaMorto && !estaAtordoado && !estaDandoDash)
         {
             StartCoroutine(RotinaAtaque());
         }
     }
 
-    // 2. Método para receber dano dos inimigos (Slime/Boss vão chamar isso)
     public void ReceberDano(float dano)
     {
-        if (estaMorto || estaAtordoado) return; // O atordoado dá aquele "i-frame" (invencibilidade temporária)
+        if (estaMorto || estaAtordoado || estaDandoDash) return; // Dá imunidade enquanto usa o dash!
         
         vidaTotal -= dano;
         StartCoroutine(RotinaFlash());
@@ -112,17 +121,29 @@ public class MovimentoJogador : MonoBehaviour
     }
 
     // --- CORROTINAS ---
+    private IEnumerator RotinaDash(Vector2 direcao)
+    {
+        estaDandoDash = true;
+        animator.SetBool("isWalking", false);
+        
+        // Dá o impulso explosivo de velocidade
+        rb.velocity = direcao * velocidadeDash;
+        
+        // Aqui você pode adicionar um rastro ou poeira depois
+        yield return new WaitForSeconds(tempoDash);
+        
+        rb.velocity = Vector2.zero;
+        estaDandoDash = false;
+    }
+
     private IEnumerator RotinaAtaque()
     {
         estaAtacando = true;
-        moveInput = Vector2.zero; // Zera a intenção de movimento
+        moveInput = Vector2.zero; 
         animator.SetBool("isWalking", false);
         
         animator.SetTrigger("Attack");
-
-        // Tempo do ataque (ajuste de acordo com a sua animação do player)
         yield return new WaitForSeconds(0.4f); 
-
         estaAtacando = false;
     }
 
@@ -137,7 +158,7 @@ public class MovimentoJogador : MonoBehaviour
     {
         estaAtordoado = true;
         moveInput = Vector2.zero;
-        yield return new WaitForSeconds(0.3f); // Tempo travado após tomar um hit
+        yield return new WaitForSeconds(0.3f); 
         estaAtordoado = false;
     }
 
@@ -146,12 +167,7 @@ public class MovimentoJogador : MonoBehaviour
         estaMorto = true;
         moveInput = Vector2.zero;
         rb.isKinematic = true; 
-
         animator.SetTrigger("Death");
-
-        // Aqui você pode colocar uma tela de Game Over depois de uns segundos
         yield return new WaitForSeconds(2.0f);
-        
-        // Destroy(gameObject); // Normalmente a gente não destrói o player, mas chama um menu.
     }
 }
