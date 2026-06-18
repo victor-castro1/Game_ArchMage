@@ -41,8 +41,12 @@ public class BossCerebro : MonoBehaviour
     private bool emCooldownAtaque = false; 
 
     [Header("Efeito de Dano")]
-    public Material materialFlash; 
+    public Material materialFlash;
     private Material materialOriginal;
+
+    [Header("Debug")]
+    [Tooltip("Tecla T causa dano no chefe (teste). MANTENHA DESLIGADO na apresentação.")]
+    public bool modoDebug = false;
 
     private Transform alvoJogador;
     private Rigidbody2D rb;
@@ -179,7 +183,7 @@ public class BossCerebro : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.T)) ReceberDano(25f);
+        if (modoDebug && Input.GetKeyDown(KeyCode.T)) ReceberDano(25f);
     }
 
     private void LookAtPlayer()
@@ -238,10 +242,14 @@ public class BossCerebro : MonoBehaviour
             col.enabled = false;
         }
 
-        anim.SetTrigger("SofreuDano"); 
-        yield return new WaitForSeconds(1.0f); 
+        anim.SetTrigger("SofreuDano");
+        yield return new WaitForSeconds(1.0f);
 
-        this.enabled = false; 
+        // 🚨 CHEFE DERROTADO = VITÓRIA DO JOGADOR
+        GameObject jogadorObj = GameObject.FindGameObjectWithTag("Player");
+        if (jogadorObj != null) jogadorObj.GetComponent<MovimentoJogador>()?.MostrarVitoria();
+
+        this.enabled = false;
     }
 
     private IEnumerator RotinaAtaque()

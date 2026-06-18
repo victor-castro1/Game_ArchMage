@@ -12,7 +12,8 @@ public class ArmaInimigo : MonoBehaviour
             MovimentoJogador player = collision.GetComponent<MovimentoJogador>();
             if (player != null)
             {
-                player.ReceberDano(danoDoAtaque);
+                // Passa a posição do atacante para empurrar o jogador na direção certa (knockback)
+                player.ReceberDano(danoDoAtaque, transform.position);
             }
         }
     }
