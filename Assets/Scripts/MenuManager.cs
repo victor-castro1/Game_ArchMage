@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 public class MenuManager : MonoBehaviour
 {
     [Header("Configurações")]
-    public string nomeCenaJogo = "SampleScene";
+    public string nomeCenaJogo = "CenaMestre";
 
     private UIDocument menuDocument;
     private Button botaoJogar;

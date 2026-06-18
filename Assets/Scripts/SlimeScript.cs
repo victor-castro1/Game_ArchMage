@@ -16,6 +16,10 @@ public class SlimeIA : MonoBehaviour
     public Material materialFlash;
     private Material materialOriginal;
 
+    [Header("Debug")]
+    [Tooltip("Tecla Y causa dano em TODOS os slimes (teste). MANTENHA DESLIGADO na apresentação.")]
+    public bool modoDebug = false;
+
     private Transform alvoJogador;
     private Rigidbody2D rb;
     private SpriteRenderer sr;
@@ -87,7 +91,7 @@ public class SlimeIA : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Y)) ReceberDano(10f); 
+        if (modoDebug && Input.GetKeyDown(KeyCode.Y)) ReceberDano(10f);
     }
 
     public void ReceberDano(float quantidade)

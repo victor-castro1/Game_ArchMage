@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
+using UnityEngine.SceneManagement;
 
 public class MovimentoJogador : MonoBehaviour
 {
@@ -11,6 +12,15 @@ public class MovimentoJogador : MonoBehaviour
     private VisualElement barraVida;
     private VisualElement barraFolego;
     private VisualElement barraEspecial;
+
+    // Tela de fim de jogo (vitória/derrota/fase concluída)
+    private VisualElement telaFim;
+    private Label labelResultado;
+    private Button botaoContinuar;
+    private Button botaoReiniciar;
+    private Button botaoMenu;
+    private string cenaProxima;
+    private bool jogoTerminou = false;
 
     [Header("Movimento")]
     [SerializeField] private float moveSpeed = 5f;
@@ -25,7 +35,7 @@ public class MovimentoJogador : MonoBehaviour
     public float folegoMaximo = 100f;
     public float folegoAtual = 100f;
     public float custoDash = 30f; // Gasta 30% da barra por dash
-    public float regeneracaoFolego = 20f; // Recupera 20% por segundo
+    public float regeneracaoFolego = 10f; // Recupera 20% por segundo
     private bool estaDandoDash = false;
     private float ultimoTempoAperto;
     private Vector2 ultimaDirecaoApertada;
@@ -36,6 +46,21 @@ public class MovimentoJogador : MonoBehaviour
     public float ganhoPorAcerto = 20f; // 5 acertos enchem a barra inteira
     public float danoDoEspecial = 50f; // O especial arranca MUITA vida
 
+    [Header("Magia à Distância (botão direito do mouse)")]
+    public float danoMagia = 20f;
+    public float velocidadeMagia = 12f;
+    public float tempoVidaMagia = 2f;
+    public float cooldownMagia = 0.4f;
+    public Color corMagia = new Color(0.4f, 0.8f, 1f);
+    [Tooltip("Opcional: sprite do projétil. Se vazio, usa um círculo gerado em runtime.")]
+    public Sprite spriteProjetil;
+    private float proximoTiroMagia = 0f;
+    private Vector2 direcaoOlhar = Vector2.down;
+    private static Sprite spriteCirculoCache;
+
+    // Eventos para o tutorial (TutorialFase1 escuta para avançar os passos)
+    public System.Action AoMover, AoAtacar, AoLancarMagia, AoDarDash, AoUsarEspecial;
+
     [Header("Status do Jogador")]
     public float vidaTotal = 100f;
     private float vidaMaxima; // Retirado o valor fixo daqui
@@ -44,12 +69,29 @@ public class MovimentoJogador : MonoBehaviour
     private bool estaAtordoado = false;
 
     [Header("Efeito de Dano")]
-    public Material materialFlash; 
+    public Material materialFlash;
     private Material materialOriginal;
     private SpriteRenderer sr;
 
+    [Header("Game Feel (Juice)")]
+    [Tooltip("Empurrão que o jogador leva ao ser atingido.")]
+    public float forcaKnockback = 6f;
+    [Tooltip("Duração do congelamento de tela (hit-stop) ao acertar um inimigo.")]
+    public float duracaoHitStop = 0.05f;
+    [Tooltip("Por quanto tempo o jogador desliza ao ser empurrado.")]
+    public float duracaoKnockback = 0.15f;
+    private bool emHitStop = false;
+    private bool estaSofrendoKnockback = false;
+
+    [Header("Debug")]
+    [Tooltip("Liga as teclas de teste (H = dano, P = enche especial). MANTENHA DESLIGADO na apresentação.")]
+    public bool modoDebug = false;
+
     void Start()
     {
+        // Rede de segurança: garante que o jogo não comece congelado (timeScale persiste entre cenas)
+        Time.timeScale = 1f;
+
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         sr = GetComponent<SpriteRenderer>();
@@ -65,6 +107,19 @@ public class MovimentoJogador : MonoBehaviour
             barraVida = root.Q<VisualElement>("hp-bar");
             barraFolego = root.Q<VisualElement>("mp-bar");
             barraEspecial = root.Q<VisualElement>("green-bar");
+
+            // 🚨 CONECTA A TELA DE FIM DE JOGO (vitória/derrota)
+            telaFim = root.Q<VisualElement>("tela-fim");
+            labelResultado = root.Q<Label>("lbl-resultado");
+            botaoContinuar = root.Q<Button>("btn-continuar");
+            botaoReiniciar = root.Q<Button>("btn-reiniciar");
+            botaoMenu = root.Q<Button>("btn-menu");
+            if (botaoContinuar != null) botaoContinuar.clicked += Continuar;
+            if (botaoReiniciar != null) botaoReiniciar.clicked += Reiniciar;
+            if (botaoMenu != null) botaoMenu.clicked += VoltarAoMenu;
+            if (botaoContinuar != null) botaoContinuar.style.display = DisplayStyle.None;
+            if (telaFim != null) telaFim.style.display = DisplayStyle.None;
+
             AtualizarHUD();
         }
     }
@@ -73,7 +128,8 @@ public class MovimentoJogador : MonoBehaviour
     {
         if (estaMorto || estaAtacando || estaAtordoado || estaDandoDash)
         {
-            if (!estaDandoDash) rb.velocity = Vector2.zero; 
+            // Não zera a velocidade durante dash ou knockback (senão o empurrão não aparece)
+            if (!estaDandoDash && !estaSofrendoKnockback) rb.velocity = Vector2.zero;
             return;
         }
 
@@ -87,36 +143,29 @@ public class MovimentoJogador : MonoBehaviour
             AtualizarHUD(); // Mantém a barrinha azul crescendo fluidamente
         }
 
-        // Teste de Dano
-        if (Input.GetKeyDown(KeyCode.H)) ReceberDano(25f);
-
-        if (Input.GetKeyDown(KeyCode.P))
+        // 🚨 TECLAS DE TESTE (só funcionam com modoDebug ligado no Inspector)
+        if (modoDebug)
         {
-            especialAtual = especialMaximo;
-            AtualizarHUD();
+            if (Input.GetKeyDown(KeyCode.H)) ReceberDano(25f);
+
+            if (Input.GetKeyDown(KeyCode.P))
+            {
+                especialAtual = especialMaximo;
+                AtualizarHUD();
+            }
         }
 
-        if (Input.GetKeyDown(KeyCode.E))
-        {
-            if (especialAtual < especialMaximo)
-            {
-                Debug.Log("Bloqueado: Falta energia na barra verde!");
-            }
-            else if (moveInput.sqrMagnitude == 0)
-            {
-                Debug.Log("Bloqueado: Você precisa estar andando para disparar o Dash!");
-            }
-            else
-            {
-                Debug.Log("ESPECIAL ATIVADO!");
-                StartCoroutine(RotinaAtaqueEspecial(moveInput));
-            }
-        }
-        
-        // BOTÃO TEMPORÁRIO PARA O ESPECIAL (Até você mapear no Input System)
+        // ESPECIAL: dispara com Espaço quando a barra verde está cheia e o jogador está andando
         if (Input.GetKeyDown(KeyCode.Space) && especialAtual >= especialMaximo && moveInput.sqrMagnitude > 0)
         {
             StartCoroutine(RotinaAtaqueEspecial(moveInput));
+        }
+
+        // MAGIA À DISTÂNCIA: botão direito do mouse (com cooldown)
+        if (Input.GetMouseButtonDown(1) && Time.time >= proximoTiroMagia)
+        {
+            LancarMagia();
+            proximoTiroMagia = Time.time + cooldownMagia;
         }
     }
 
@@ -142,13 +191,15 @@ public class MovimentoJogador : MonoBehaviour
             ultimaDirecaoApertada = moveInput;
         }
 
-        if (moveInput.sqrMagnitude > 0) 
+        if (moveInput.sqrMagnitude > 0)
         {
             animator.SetBool("isWalking", true);
             animator.SetFloat("LastInputX", moveInput.x);
             animator.SetFloat("LastInputY", moveInput.y);
+            direcaoOlhar = moveInput.normalized; // guarda para onde o jogador está virado
+            AoMover?.Invoke();
         }
-        else 
+        else
         {
             animator.SetBool("isWalking", false);
         }
@@ -165,22 +216,28 @@ public class MovimentoJogador : MonoBehaviour
         }
     }
 
+    // Versão sem origem (usada pelo modo debug): não aplica knockback
     public void ReceberDano(float dano)
     {
-        if (estaMorto || estaAtordoado || estaDandoDash) return; 
-        
+        ReceberDano(dano, transform.position);
+    }
+
+    public void ReceberDano(float dano, Vector2 origem)
+    {
+        if (estaMorto || estaAtordoado || estaDandoDash) return;
+
         vidaTotal -= dano;
 
-        if (vidaTotal < 0f) 
+        if (vidaTotal < 0f)
         {
             vidaTotal = 0f;
         }
 
-        AtualizarHUD(); 
+        AtualizarHUD();
 
         StartCoroutine(RotinaFlash());
-        
-        if (vidaTotal <= 0) 
+
+        if (vidaTotal <= 0)
         {
             StartCoroutine(RotinaMorte());
         }
@@ -188,7 +245,145 @@ public class MovimentoJogador : MonoBehaviour
         {
             animator.SetTrigger("Hurt");
             StartCoroutine(RotinaAtordoamento());
+
+            // 🚨 KNOCKBACK: empurra o jogador para longe da fonte do dano
+            Vector2 direcaoEmpurrao = (Vector2)transform.position - origem;
+            if (direcaoEmpurrao.sqrMagnitude > 0.001f)
+            {
+                StartCoroutine(RotinaKnockback(direcaoEmpurrao.normalized));
+            }
         }
+    }
+
+    private IEnumerator RotinaKnockback(Vector2 direcao)
+    {
+        estaSofrendoKnockback = true;
+        rb.velocity = direcao * forcaKnockback;
+        yield return new WaitForSeconds(duracaoKnockback);
+        rb.velocity = Vector2.zero;
+        estaSofrendoKnockback = false;
+    }
+
+    // 🚨 HIT-STOP: micro-congelamento ao acertar um inimigo, dá peso ao golpe
+    public void AplicarHitStop()
+    {
+        if (!emHitStop) StartCoroutine(RotinaHitStop());
+    }
+
+    private IEnumerator RotinaHitStop()
+    {
+        if (jogoTerminou) yield break;
+        emHitStop = true;
+        Time.timeScale = 0.05f;
+        yield return new WaitForSecondsRealtime(duracaoHitStop);
+        if (!jogoTerminou) Time.timeScale = 1f;
+        emHitStop = false;
+    }
+
+    // 🚨 TELA DE FIM DE JOGO
+    public void MostrarVitoria()
+    {
+        if (botaoContinuar != null) botaoContinuar.style.display = DisplayStyle.None;
+        FinalizarJogo("VITORIA!");
+    }
+
+    public void MostrarDerrota()
+    {
+        if (botaoContinuar != null) botaoContinuar.style.display = DisplayStyle.None;
+        FinalizarJogo("VOCE MORREU");
+    }
+
+    // Fim de FASE (não de jogo): mostra "FASE CONCLUIDA" + botão CONTINUAR para a próxima cena
+    public void MostrarFaseConcluida(string proximaCena)
+    {
+        cenaProxima = proximaCena;
+        if (botaoContinuar != null) botaoContinuar.style.display = DisplayStyle.Flex;
+        FinalizarJogo("FASE CONCLUIDA");
+    }
+
+    private void FinalizarJogo(string texto)
+    {
+        if (jogoTerminou) return;
+        jogoTerminou = true;
+
+        if (labelResultado != null) labelResultado.text = texto;
+        if (telaFim != null) telaFim.style.display = DisplayStyle.Flex;
+
+        Time.timeScale = 0f; // congela o jogo por trás da tela de fim
+    }
+
+    private void Continuar()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(cenaProxima);
+    }
+
+    private void Reiniciar()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    private void VoltarAoMenu()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene("MenuPrincipal");
+    }
+
+    // 🚨 MAGIA À DISTÂNCIA: cria o projétil em runtime, mirando no mouse (ou na direção do olhar)
+    private void LancarMagia()
+    {
+        Vector2 direcao = direcaoOlhar;
+        if (Camera.main != null)
+        {
+            Vector3 mundo = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            Vector2 d = (Vector2)mundo - (Vector2)transform.position;
+            if (d.sqrMagnitude > 0.04f) direcao = d.normalized;
+        }
+
+        GameObject proj = new GameObject("ProjetilMagico");
+        proj.transform.position = transform.position + (Vector3)(direcao * 0.6f);
+
+        SpriteRenderer prSr = proj.AddComponent<SpriteRenderer>();
+        prSr.sprite = spriteProjetil != null ? spriteProjetil : GerarSpriteCirculo();
+        prSr.color = corMagia;
+        prSr.sortingOrder = 10;
+
+        CircleCollider2D col = proj.AddComponent<CircleCollider2D>();
+        col.isTrigger = true;
+        col.radius = 0.25f;
+
+        Rigidbody2D rbProj = proj.AddComponent<Rigidbody2D>();
+        rbProj.gravityScale = 0f;
+        rbProj.freezeRotation = true;
+        rbProj.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+
+        proj.AddComponent<ProjetilMagico>().Iniciar(direcao, danoMagia, velocidadeMagia, tempoVidaMagia);
+
+        // Dispara a animação de conjuração (ligue o trigger "Magia" à animação thrust no Animator)
+        animator.SetFloat("LastInputX", direcao.x);
+        animator.SetFloat("LastInputY", direcao.y);
+        animator.SetTrigger("Magia");
+
+        AoLancarMagia?.Invoke();
+    }
+
+    // Gera um círculo branco simples para o projétil quando não há sprite atribuído
+    private static Sprite GerarSpriteCirculo()
+    {
+        if (spriteCirculoCache != null) return spriteCirculoCache;
+        int tam = 32;
+        Texture2D tex = new Texture2D(tam, tam) { wrapMode = TextureWrapMode.Clamp };
+        Vector2 centro = new Vector2(tam / 2f, tam / 2f);
+        for (int y = 0; y < tam; y++)
+            for (int x = 0; x < tam; x++)
+            {
+                float dist = Vector2.Distance(new Vector2(x + 0.5f, y + 0.5f), centro);
+                tex.SetPixel(x, y, dist <= (tam / 2f - 1f) ? Color.white : new Color(1f, 1f, 1f, 0f));
+            }
+        tex.Apply();
+        spriteCirculoCache = Sprite.Create(tex, new Rect(0, 0, tam, tam), new Vector2(0.5f, 0.5f), 64f);
+        return spriteCirculoCache;
     }
 
     public void GanharEspecial()
@@ -227,8 +422,9 @@ public class MovimentoJogador : MonoBehaviour
     private IEnumerator RotinaDash(Vector2 direcao)
     {
         estaDandoDash = true;
+        AoDarDash?.Invoke();
         animator.SetBool("isWalking", false);
-        AtualizarHUD(); 
+        AtualizarHUD();
         
         Physics2D.IgnoreLayerCollision(LayerMask.NameToLayer("Player"), LayerMask.NameToLayer("Inimigo"), true);
 
@@ -243,8 +439,9 @@ public class MovimentoJogador : MonoBehaviour
 
     private IEnumerator RotinaAtaqueEspecial(Vector2 direcao)
     {
-        estaDandoDash = true; 
-        especialAtual = 0; 
+        estaDandoDash = true;
+        AoUsarEspecial?.Invoke();
+        especialAtual = 0;
         AtualizarHUD();
 
         animator.SetTrigger("Attack"); 
@@ -278,7 +475,8 @@ public class MovimentoJogador : MonoBehaviour
     private IEnumerator RotinaAtaque()
     {
         estaAtacando = true;
-        moveInput = Vector2.zero; 
+        AoAtacar?.Invoke();
+        moveInput = Vector2.zero;
         animator.SetBool("isWalking", false);
         
         animator.SetTrigger("Attack");
@@ -305,8 +503,16 @@ public class MovimentoJogador : MonoBehaviour
     {
         estaMorto = true;
         moveInput = Vector2.zero;
-        rb.isKinematic = true; 
+        rb.isKinematic = true;
         animator.SetTrigger("Death");
         yield return new WaitForSeconds(2.0f);
+        MostrarDerrota();
+    }
+
+    private void OnDestroy()
+    {
+        if (botaoContinuar != null) botaoContinuar.clicked -= Continuar;
+        if (botaoReiniciar != null) botaoReiniciar.clicked -= Reiniciar;
+        if (botaoMenu != null) botaoMenu.clicked -= VoltarAoMenu;
     }
 }

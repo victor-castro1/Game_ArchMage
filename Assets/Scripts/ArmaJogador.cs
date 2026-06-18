@@ -10,10 +10,15 @@ public class ArmaJogador : MonoBehaviour
         if (collision.CompareTag("Boss"))
         {
             BossCerebro boss = collision.GetComponentInParent<BossCerebro>();
-            if (boss != null) 
+            if (boss != null)
             {
                 boss.ReceberDano(danoDoAtaque);
-                GetComponentInParent<MovimentoJogador>().GanharEspecial();
+                MovimentoJogador jogador = GetComponentInParent<MovimentoJogador>();
+                if (jogador != null)
+                {
+                    jogador.GanharEspecial();
+                    jogador.AplicarHitStop(); // peso no golpe
+                }
             }
         }
 
@@ -21,7 +26,11 @@ public class ArmaJogador : MonoBehaviour
         if (collision.CompareTag("Minion"))
         {
             SlimeIA slime = collision.GetComponentInParent<SlimeIA>();
-            if (slime != null) slime.ReceberDano(danoDoAtaque);
+            if (slime != null)
+            {
+                slime.ReceberDano(danoDoAtaque);
+                GetComponentInParent<MovimentoJogador>()?.AplicarHitStop();
+            }
         }
     }
 }
