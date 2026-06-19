@@ -100,14 +100,17 @@ public class CutsceneMestre : MonoBehaviour
         if (lblFalante != null) lblFalante.text = roteiro[indice].quem;
         if (lblTexto != null) lblTexto.text = roteiro[indice].texto;
 
-        // Troca o retrato conforme quem está falando
+        // Troca o retrato conforme quem está falando (Mestre à esquerda, Você à direita)
         if (retrato != null)
         {
-            Sprite s = roteiro[indice].quem == "MESTRE" ? retratoMestre : retratoProtagonista;
+            bool eMestre = roteiro[indice].quem == "MESTRE";
+            Sprite s = eMestre ? retratoMestre : retratoProtagonista;
             if (s != null)
             {
                 retrato.style.backgroundImage = new StyleBackground(s);
                 retrato.style.display = DisplayStyle.Flex;
+                retrato.style.left = eMestre ? new StyleLength(Length.Percent(6)) : new StyleLength(StyleKeyword.Auto);
+                retrato.style.right = eMestre ? new StyleLength(StyleKeyword.Auto) : new StyleLength(Length.Percent(6));
             }
             else
             {
@@ -134,6 +137,7 @@ public class CutsceneMestre : MonoBehaviour
     {
         if (carregando) return;
         carregando = true;
+        MovimentoJogador.LimparEstadoSalvo(); // novo run começa com vida/especial cheios
         PlayerPrefs.SetString("ClasseEscolhida", classe);
         PlayerPrefs.Save();
         Debug.Log("[CutsceneMestre] Classe escolhida: " + classe);

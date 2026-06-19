@@ -22,6 +22,10 @@ public class MovimentoJogador : MonoBehaviour
     private string cenaProxima;
     private bool jogoTerminou = false;
 
+    // Persistência entre fases: carrega vida/especial/fôlego ao avançar de cena
+    private static bool temEstadoSalvo = false;
+    private static float vidaSalva, especialSalva, folegoSalvo;
+
     [Header("Movimento")]
     [SerializeField] private float moveSpeed = 5f;
     private Rigidbody2D rb;
@@ -100,6 +104,15 @@ public class MovimentoJogador : MonoBehaviour
         // 🚨 CORREÇÃO CRÍTICA: Garante que a vida máxima seja o que você colocou no Inspector!
         vidaMaxima = vidaTotal;
 
+        // Restaura vida/especial/fôlego ao avançar de fase (não reseta entre cenas)
+        if (temEstadoSalvo)
+        {
+            vidaTotal = Mathf.Clamp(vidaSalva, 1f, vidaMaxima);
+            especialAtual = especialSalva;
+            folegoAtual = folegoSalvo;
+            temEstadoSalvo = false; // consome o estado salvo
+        }
+
         // 🚨 CONECTA AS BARRAS DA INTERFACE
         if (hudDocument != null)
         {
@@ -155,17 +168,34 @@ public class MovimentoJogador : MonoBehaviour
             }
         }
 
-        // ESPECIAL: dispara com Espaço quando a barra verde está cheia e o jogador está andando
-        if (Input.GetKeyDown(KeyCode.Space) && especialAtual >= especialMaximo && moveInput.sqrMagnitude > 0)
+        // ATAQUE: botão ESQUERDO do mouse
+        if (Input.GetMouseButtonDown(0))
         {
-            StartCoroutine(RotinaAtaqueEspecial(moveInput));
+            StartCoroutine(RotinaAtaque());
+            return;
         }
 
-        // MAGIA À DISTÂNCIA: botão direito do mouse (com cooldown)
+        // MAGIA À DISTÂNCIA: botão DIREITO do mouse (com cooldown)
         if (Input.GetMouseButtonDown(1) && Time.time >= proximoTiroMagia)
         {
             LancarMagia();
             proximoTiroMagia = Time.time + cooldownMagia;
+            return;
+        }
+
+        // ESPAÇO: DASH na direção escolhida. Se a barra verde estiver cheia e andando, vira ESPECIAL.
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            if (especialAtual >= especialMaximo && moveInput.sqrMagnitude > 0)
+            {
+                StartCoroutine(RotinaAtaqueEspecial(moveInput));
+            }
+            else if (!estaDandoDash && folegoAtual >= custoDash)
+            {
+                Vector2 dir = moveInput.sqrMagnitude > 0 ? moveInput.normalized : direcaoOlhar;
+                folegoAtual -= custoDash;
+                StartCoroutine(RotinaDash(dir));
+            }
         }
     }
 
@@ -208,12 +238,12 @@ public class MovimentoJogador : MonoBehaviour
         animator.SetFloat("InputY", moveInput.y);
     }
 
+    // O ataque agora é tratado pelo CLIQUE ESQUERDO no Update (input legado).
+    // Este callback do Input System fica vazio de propósito, senão o bind de Espaço/Submit
+    // faz o personagem atacar ao usar o dash.
     public void Atacar(InputAction.CallbackContext context)
     {
-        if (context.started && !estaAtacando && !estaMorto && !estaAtordoado && !estaDandoDash)
-        {
-            StartCoroutine(RotinaAtaque());
-        }
+        // intencionalmente vazio
     }
 
     // Versão sem origem (usada pelo modo debug): não aplica knockback
@@ -314,20 +344,34 @@ public class MovimentoJogador : MonoBehaviour
 
     private void Continuar()
     {
+        // Salva o estado para a próxima fase carregar com a mesma vida/especial/fôlego
+        vidaSalva = vidaTotal;
+        especialSalva = especialAtual;
+        folegoSalvo = folegoAtual;
+        temEstadoSalvo = true;
+
         Time.timeScale = 1f;
         SceneManager.LoadScene(cenaProxima);
     }
 
     private void Reiniciar()
     {
+        temEstadoSalvo = false; // recomeço = estado limpo
         Time.timeScale = 1f;
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
     private void VoltarAoMenu()
     {
+        temEstadoSalvo = false;
         Time.timeScale = 1f;
         SceneManager.LoadScene("MenuPrincipal");
+    }
+
+    // Chamado no início de um novo run (cutscene) para começar com vida/especial cheios
+    public static void LimparEstadoSalvo()
+    {
+        temEstadoSalvo = false;
     }
 
     // 🚨 MAGIA À DISTÂNCIA: cria o projétil em runtime, mirando no mouse (ou na direção do olhar)
@@ -346,8 +390,15 @@ public class MovimentoJogador : MonoBehaviour
 
         SpriteRenderer prSr = proj.AddComponent<SpriteRenderer>();
         prSr.sprite = spriteProjetil != null ? spriteProjetil : GerarSpriteCirculo();
-        prSr.color = corMagia;
-        prSr.sortingOrder = 10;
+        // Se a cor vier transparente (campo não configurado), usa um ciano visível
+        prSr.color = corMagia.a < 0.05f ? new Color(0.4f, 0.8f, 1f, 1f) : corMagia;
+        // Mesma camada de ordenação do jogador, um pouco acima (senão fica escondido atrás do cenário)
+        if (sr != null)
+        {
+            prSr.sortingLayerID = sr.sortingLayerID;
+            prSr.sortingOrder = sr.sortingOrder + 5;
+        }
+        else prSr.sortingOrder = 100;
 
         CircleCollider2D col = proj.AddComponent<CircleCollider2D>();
         col.isTrigger = true;
@@ -360,12 +411,20 @@ public class MovimentoJogador : MonoBehaviour
 
         proj.AddComponent<ProjetilMagico>().Iniciar(direcao, danoMagia, velocidadeMagia, tempoVidaMagia);
 
-        // Dispara a animação de conjuração (ligue o trigger "Magia" à animação thrust no Animator)
+        // Dispara a animação de conjuração SÓ se o trigger "Magia" existir no Animator (evita o warning)
         animator.SetFloat("LastInputX", direcao.x);
         animator.SetFloat("LastInputY", direcao.y);
-        animator.SetTrigger("Magia");
+        if (TemParametro("Magia")) animator.SetTrigger("Magia");
 
         AoLancarMagia?.Invoke();
+    }
+
+    // Verifica se um parâmetro existe no Animator (evita warnings de "parameter does not exist")
+    private bool TemParametro(string nome)
+    {
+        foreach (AnimatorControllerParameter p in animator.parameters)
+            if (p.name == nome) return true;
+        return false;
     }
 
     // Gera um círculo branco simples para o projétil quando não há sprite atribuído
