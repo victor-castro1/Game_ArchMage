@@ -50,26 +50,32 @@ public class TutorialFase1 : MonoBehaviour
 
     private IEnumerator RotinaTutorial()
     {
+        // Passos 1-4: esperam a ação do jogador (não pulam sozinhos).
         yield return Passo("Use W A S D para se MOVER", () => moveu);
         yield return Passo("Clique ESQUERDO para ATACAR", () => atacou);
         yield return Passo("Clique DIREITO para lançar MAGIA (mira no mouse)", () => lancouMagia);
-        yield return Passo("Aperte 2x a mesma direção para dar DASH", () => deuDash);
-        yield return Passo("Barra verde cheia + andando: ESPAÇO = ESPECIAL", () => usouEspecial, 14f);
+        yield return Passo("Aperte ESPAÇO para dar DASH", () => deuDash);
+        // Último passo (especial pode não estar carregado): tem tempo limite para não travar.
+        yield return Passo("Barra verde cheia? ESPAÇO vira ESPECIAL", () => usouEspecial, tempoMaximoPorPasso);
 
         EsconderPainel();
     }
 
-    private IEnumerator Passo(string instrucao, System.Func<bool> concluido, float tempoMax = -1f)
+    // tempoMax <= 0 => espera a ação acontecer (NÃO pula sozinho). > 0 => avança após o tempo.
+    private IEnumerator Passo(string instrucao, System.Func<bool> concluido, float tempoMax = 0f)
     {
         if (pulado) yield break;
-        if (tempoMax < 0f) tempoMax = tempoMaximoPorPasso;
 
         if (texto != null) texto.text = instrucao;
 
         float t = 0f;
-        while (!pulado && !concluido() && t < tempoMax)
+        while (!pulado && !concluido())
         {
-            t += Time.deltaTime;
+            if (tempoMax > 0f)
+            {
+                t += Time.deltaTime;
+                if (t >= tempoMax) break;
+            }
             yield return null;
         }
 

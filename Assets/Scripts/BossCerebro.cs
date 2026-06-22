@@ -17,9 +17,11 @@ public class BossCerebro : MonoBehaviour
     [Header("Configurações de Movimento")]
     public float velocidade = 3.0f;
     public float raioDeteccao = 10f;
-    public float distanciaMaximaFuga = 7.0f; 
+    public float distanciaMaximaFuga = 7.0f;
     [Tooltip("Distância do raio de detecção de paredes. Aumente se o Boss for muito grande.")]
-    public float distanciaRaycast = 3.5f; 
+    public float distanciaRaycast = 3.5f;
+    [Tooltip("Multiplicador da velocidade ao FUGIR na fase 1 (menor = mais fácil de alcançar).")]
+    [Range(0.2f, 1f)] public float fatorVelocidadeFuga = 0.55f;
 
     [Header("Status do Boss")]
     public float vidaTotal = 100f;
@@ -35,10 +37,13 @@ public class BossCerebro : MonoBehaviour
     public float distanciaParaIniciarAtaque = 6.0f; 
     public float velocidadeDash = 20f; 
     public float tempoDash = 0.2f; 
-    public float tempoAtaque = 0.8f; 
-    public float tempoRecuperacao = 1.2f; 
+    public float tempoAtaque = 0.8f;
+    public float tempoRecuperacao = 1.2f;
+    [Tooltip("Duração do aviso (pisca) antes da investida.")]
+    public float tempoTelegrafia = 0.45f;
+    public Color corTelegrafia = new Color(1f, 0.45f, 0f);
     private bool estaAtacando = false;
-    private bool emCooldownAtaque = false; 
+    private bool emCooldownAtaque = false;
 
     [Header("Efeito de Dano")]
     public Material materialFlash;
@@ -131,7 +136,8 @@ public class BossCerebro : MonoBehaviour
                     }
                     else
                     {
-                        rb.MovePosition(rb.position + direcao * velocidade * Time.fixedDeltaTime);
+                        // Foge mais devagar do que persegue, pra não virar "corre-corre"
+                        rb.MovePosition(rb.position + direcao * (velocidade * fatorVelocidadeFuga) * Time.fixedDeltaTime);
                     }
                 }
                 else if (distancia > (distanciaMaximaFuga + margemTolerancia))
@@ -260,10 +266,20 @@ public class BossCerebro : MonoBehaviour
         Vector2 posicaoAlvo = alvoJogador.position;
         Vector2 direcaoDash = (posicaoAlvo - (Vector2)transform.position).normalized;
         
-        if (direcaoDash.x > 0) transform.localScale = new Vector3(-Mathf.Abs(escalaOriginal.x), escalaOriginal.y, escalaOriginal.z); 
+        if (direcaoDash.x > 0) transform.localScale = new Vector3(-Mathf.Abs(escalaOriginal.x), escalaOriginal.y, escalaOriginal.z);
         else if (direcaoDash.x < 0) transform.localScale = new Vector3(Mathf.Abs(escalaOriginal.x), escalaOriginal.y, escalaOriginal.z);
 
-        yield return new WaitForSeconds(0.3f); 
+        // 🚨 TELEGRAFIA: pisca na cor de aviso antes de investir (golpe justo e legível)
+        float tT = 0f;
+        bool aceso = false;
+        while (tT < tempoTelegrafia)
+        {
+            aceso = !aceso;
+            sr.color = aceso ? corTelegrafia : Color.white;
+            yield return new WaitForSeconds(0.08f);
+            tT += 0.08f;
+        }
+        sr.color = Color.white;
 
         rb.velocity = direcaoDash * velocidadeDash;
         yield return new WaitForSeconds(tempoDash);
