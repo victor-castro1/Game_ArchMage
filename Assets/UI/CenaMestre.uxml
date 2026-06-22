@@ -1,9 +1,9 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <Style src="project://database/Assets/UI/MainMenu/MainMenuStyles.uss?fileID=7433441132597879392&amp;guid=64edfd253fd43d941a9185863b6992f3&amp;type=3#MainMenuStyles" />
     <ui:VisualElement name="cutscene-root" style="flex-grow: 1; background-color: rgb(10, 12, 22); justify-content: flex-end; align-items: center;">
-        <ui:VisualElement name="retrato" style="position: absolute; bottom: 200px; left: 6%; width: 360px; height: 360px; -unity-background-scale-mode: scale-to-fit; display: none;" />
+        <ui:VisualElement name="retrato" style="position: absolute; bottom: 255px; left: 6%; width: 360px; height: 360px; -unity-background-scale-mode: scale-to-fit; display: none;" />
         <ui:VisualElement name="painel-dialogo" style="position: absolute; left: 6%; right: 6%; bottom: 6%; min-height: 175px; background-color: rgba(15, 20, 35, 0.95); border-left-width: 2px; border-right-width: 2px; border-top-width: 2px; border-bottom-width: 2px; border-left-color: rgb(255, 183, 3); border-right-color: rgb(255, 183, 3); border-top-color: rgb(255, 183, 3); border-bottom-color: rgb(255, 183, 3); border-top-left-radius: 14px; border-top-right-radius: 14px; border-bottom-left-radius: 14px; border-bottom-right-radius: 14px; padding-left: 36px; padding-right: 36px; padding-top: 24px; padding-bottom: 22px;">
-            <ui:Label name="lbl-falante" text="MESTRE" style="font-size: 34px; color: rgb(255, 183, 3); -unity-font-style: bold; margin-bottom: 14px;" />
+            <ui:Label name="lbl-falante" text="JOANA" style="font-size: 34px; color: rgb(255, 183, 3); -unity-font-style: bold; margin-bottom: 14px;" />
             <ui:Label name="lbl-texto" text="..." style="font-size: 30px; color: rgb(240, 240, 240); white-space: normal;" />
             <ui:Label name="lbl-dica" text="clique ou aperte ESPACO para continuar" style="font-size: 18px; color: rgba(255, 255, 255, 0.6); -unity-text-align: middle-right; margin-top: 12px;" />
         </ui:VisualElement>

@@ -390,23 +390,18 @@ public class MovimentoJogador : MonoBehaviour
     public void MostrarFaseConcluida(string proximaCena)
     {
         cenaProxima = proximaCena;
-        emTelaModal = true;
-        Time.timeScale = 0f; // congela durante a escolha das cartas
 
+        // Só pausa e mostra a tela SE houver cartas pra escolher; senão vai direto pra próxima fase
         if (PrepararCartas())
         {
+            emTelaModal = true;
+            Time.timeScale = 0f;
             if (painelCartas != null) painelCartas.style.display = DisplayStyle.Flex;
         }
         else
         {
-            MostrarContinuar();
+            Continuar();
         }
-    }
-
-    private void MostrarContinuar()
-    {
-        if (botaoContinuar != null) botaoContinuar.style.display = DisplayStyle.Flex;
-        FinalizarJogo("FASE CONCLUIDA");
     }
 
     // Sorteia até 3 cartas (sem repetir, respeitando o limite de stack). Retorna false se não há cartas.
@@ -452,7 +447,7 @@ public class MovimentoJogador : MonoBehaviour
         AplicarCartaImediata(tipo);
 
         if (painelCartas != null) painelCartas.style.display = DisplayStyle.None;
-        MostrarContinuar();
+        Continuar(); // aplica a carta e vai direto pra próxima fase (sem tela de "fase concluída")
     }
 
     // Recalcula os stats com a carta recém-escolhida (estado é salvo ao clicar em CONTINUAR)

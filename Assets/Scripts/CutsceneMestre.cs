@@ -36,16 +36,17 @@ public class CutsceneMestre : MonoBehaviour
     private struct Fala { public string quem; public string texto; public Fala(string q, string t){ quem=q; texto=t; } }
     private readonly Fala[] roteiro = new Fala[]
     {
-        new Fala("MESTRE", "Pode entrar."),
-        new Fala("VOCÊ", "Tá trancada!"),
-        new Fala("MESTRE", "Ué... tava mesmo fechada. Hahaha."),
-        new Fala("MESTRE", "Senta aqui. Deixa eu te mostrar uma coisa."),
-        new Fala("VOCÊ", "E qual é a missão?"),
-        new Fala("MESTRE", "Um planeta que não devia estar aí."),
-        new Fala("MESTRE", "Uma ameaça acordou lá embaixo."),
-        new Fala("MESTRE", "E você vai ter que chegar até o Núcleo."),
-        new Fala("MESTRE", "Só lembra de uma coisa: aqui dentro... as escolhas custam."),
-        new Fala("MESTRE", "Agora me diz: quem você quer ser?"),
+        new Fala("JOANA", "Pode entrar. A porta tá aberta."),
+        new Fala("VOCÊ", "...Mestre, tá trancada."),
+        new Fala("JOANA", "Hah! Trancada, é? Deixa comigo — essa porta sempre emperra."),
+        new Fala("JOANA", "Pronto. Senta aqui. Hoje a brincadeira é de verdade."),
+        new Fala("VOCÊ", "De verdade como? Qual é a missão?"),
+        new Fala("JOANA", "Tá vendo esse planeta azul? Ele não devia estar aí."),
+        new Fala("JOANA", "Algo despertou lá no fundo dele. E está subindo."),
+        new Fala("JOANA", "Você vai descer até o Núcleo e silenciar isso."),
+        new Fala("JOANA", "Falar é fácil. Sobreviver até lá, nem tanto."),
+        new Fala("JOANA", "E não esquece: aqui dentro, toda escolha cobra um preço."),
+        new Fala("JOANA", "Agora me diz... quem você quer ser?"),
     };
 
     private int indice = 0;
@@ -103,7 +104,7 @@ public class CutsceneMestre : MonoBehaviour
         // Troca o retrato conforme quem está falando (Mestre à esquerda, Você à direita)
         if (retrato != null)
         {
-            bool eMestre = roteiro[indice].quem == "MESTRE";
+            bool eMestre = roteiro[indice].quem != "VOCÊ";
             Sprite s = eMestre ? retratoMestre : retratoProtagonista;
             if (s != null)
             {
