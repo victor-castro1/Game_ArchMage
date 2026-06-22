@@ -133,7 +133,15 @@ public class GerenciadorOndas : MonoBehaviour
         {
             bool achou = false;
             foreach (GameObject porta in portas)
-                if (porta != null) { porta.SetActive(true); achou = true; }
+                if (porta != null)
+                {
+                    // Garante que todas as portas da fase levem ao destino configurado aqui.
+                    Porta comp = porta.GetComponent<Porta>();
+                    if (comp != null && !string.IsNullOrEmpty(cenaDasPortas))
+                        comp.cenaDestino = cenaDasPortas;
+                    porta.SetActive(true);
+                    achou = true;
+                }
             if (achou) return;
         }
         CriarPortasPlaceholder();
