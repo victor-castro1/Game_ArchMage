@@ -60,6 +60,9 @@ public class MovimentoJogador : MonoBehaviour
     [Tooltip("Marque APENAS no prefab/GameObject do Mago. Troca 'Attack' por 'Spellcast' nas animações de ataque.")]
     public bool ehMago = false;
 
+    [Tooltip("Sprite do rosto (avatar) a ser exibido no HUD. (Arraste a imagem aqui)")]
+    public Sprite retratoAvatar;
+
     [Header("Dash (Fôlego Azul)")]
     public float velocidadeDash = 15f;
     public float tempoDash = 0.2f;
@@ -119,6 +122,25 @@ public class MovimentoJogador : MonoBehaviour
     [Tooltip("Liga as teclas de teste (H = dano, P = enche especial, K = mata todos os inimigos). MANTENHA DESLIGADO na apresentação.")]
     public bool modoDebug = false;
 
+    void Awake()
+    {
+        // 🚨 AUTO-GERENCIAMENTO DE CLASSE: 
+        // O próprio personagem verifica se ele é a classe escolhida.
+        // Se não for, ele se desativa imediatamente antes do jogo começar.
+        string classeEscolhida = PlayerPrefs.GetString("ClasseEscolhida", "Paladino");
+        
+        if (ehMago && classeEscolhida != "Mago")
+        {
+            gameObject.SetActive(false);
+            return;
+        }
+        else if (!ehMago && classeEscolhida == "Mago")
+        {
+            gameObject.SetActive(false);
+            return;
+        }
+    }
+
     void Start()
     {
         // Rede de segurança: garante que o jogo não comece congelado (timeScale persiste entre cenas)
@@ -129,6 +151,13 @@ public class MovimentoJogador : MonoBehaviour
         animator = GetComponent<Animator>();
         sr = GetComponent<SpriteRenderer>();
         materialOriginal = sr.material;
+
+        // 🚨 REDIRECIONA A CÂMERA AUTOMATICAMENTE
+        Cinemachine.CinemachineVirtualCamera vCam = FindObjectOfType<Cinemachine.CinemachineVirtualCamera>();
+        if (vCam != null)
+        {
+            vCam.Follow = transform;
+        }
 
         // 🚨 CORREÇÃO CRÍTICA: Garante que a vida máxima seja o que você colocou no Inspector!
         vidaMaxima = vidaTotal;
@@ -158,6 +187,13 @@ public class MovimentoJogador : MonoBehaviour
             barraVida = root.Q<VisualElement>("hp-bar");
             barraFolego = root.Q<VisualElement>("mp-bar");
             barraEspecial = root.Q<VisualElement>("green-bar");
+
+            // 🚨 TROCA DO RETRATO (AVATAR) NO HUD
+            VisualElement avatar = root.Q<VisualElement>("avatar");
+            if (avatar != null && retratoAvatar != null)
+            {
+                avatar.style.backgroundImage = new StyleBackground(retratoAvatar);
+            }
 
             // 🚨 CONECTA A TELA DE FIM DE JOGO (vitória/derrota)
             telaFim = root.Q<VisualElement>("tela-fim");

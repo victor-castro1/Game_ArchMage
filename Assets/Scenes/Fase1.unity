@@ -3035,8 +3035,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64aeb2d2dbf6a094fad12be438c64743, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  jogador1Paladino: {fileID: 876976262}
-  mago: {fileID: 1490473384}
   virtualCamera: {fileID: 1960005304}
 --- !u!4 &813432038
 Transform:
@@ -11932,6 +11930,10 @@ PrefabInstance:
       propertyPath: hudDocument
       value: 
       objectReference: {fileID: 366362671}
+    - target: {fileID: 2932930560174820518, guid: e207b8b6011ad9d48a999e6ad5d10e3f, type: 3}
+      propertyPath: retratoAvatar
+      value: 
+      objectReference: {fileID: 21300000, guid: d1927a44b885fb44eb6b67246c89f9b4, type: 3}
     - target: {fileID: 2932930560174820518, guid: e207b8b6011ad9d48a999e6ad5d10e3f, type: 3}
       propertyPath: danoDoEspecial
       value: 30

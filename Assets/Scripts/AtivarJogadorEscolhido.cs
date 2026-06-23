@@ -1,83 +1,76 @@
 using UnityEngine;
 using Cinemachine;
+using UnityEngine.SceneManagement;
 
 /// <summary>
-/// Coloque este script em um GameObject vazio na cena (ex: "GameManager").
-/// Ele lê PlayerPrefs("ClasseEscolhida"), ativa o personagem correto
-/// e redireciona o Follow da Cinemachine Virtual Camera para ele.
-///
-/// Valores esperados em PlayerPrefs:
-///   "Paladino"  → ativa Jogador1, desativa Mago
-///   "Mago"      → ativa Mago, desativa Jogador1
-///   (vazio)     → fallback para Paladino
+/// Coloque este script em um GameObject vazio (ex: "GameManager") em TODAS as suas fases.
+/// Ele lê PlayerPrefs("ClasseEscolhida"), busca os personagens automaticamente na cena
+/// e redireciona a câmera e o HUD para o personagem ativo.
 /// </summary>
 public class AtivarJogadorEscolhido : MonoBehaviour
 {
-    [Header("Referências dos Personagens")]
-    [Tooltip("Arraste o GameObject 'Jogador1' (Paladino) aqui.")]
-    public GameObject jogador1Paladino;
-
-    [Tooltip("Arraste o GameObject 'Mago' aqui.")]
-    public GameObject mago;
-
     [Header("Câmera")]
-    [Tooltip("Arraste a Cinemachine Virtual Camera da cena aqui. " +
-             "Se deixar vazio, o script tenta encontrá-la automaticamente.")]
+    [Tooltip("Arraste a Cinemachine Virtual Camera da cena aqui. Se deixar vazio, o script a encontra automaticamente.")]
     public CinemachineVirtualCamera virtualCamera;
 
     void Awake()
     {
-        // Tenta encontrar a Virtual Camera automaticamente se não foi atribuída
-        if (virtualCamera == null)
-            virtualCamera = FindObjectOfType<CinemachineVirtualCamera>();
-
-        if (virtualCamera == null)
-            Debug.LogWarning("[AtivarJogadorEscolhido] Nenhuma CinemachineVirtualCamera encontrada na cena. " +
-                             "A câmera não será redirecionada.");
-
-        // Lê a classe salva no menu de seleção
-        string classeEscolhida = PlayerPrefs.GetString("ClasseEscolhida", "Paladino");
-
-        switch (classeEscolhida)
-        {
-            case "Mago":
-                AtivarPersonagem(mago, jogador1Paladino);
-                break;
-
-            case "Paladino":
-            default:
-                AtivarPersonagem(jogador1Paladino, mago);
-                break;
-        }
-
-        Debug.Log($"[AtivarJogadorEscolhido] Classe carregada: '{classeEscolhida}'");
+        AplicarClasseEscolhida();
     }
 
-    /// <summary>
-    /// Ativa <paramref name="ativar"/>, desativa <paramref name="desativar"/>
-    /// e aponta o Follow da câmera para o personagem ativo.
-    /// </summary>
-    private void AtivarPersonagem(GameObject ativar, GameObject desativar)
+    private void AplicarClasseEscolhida()
     {
-        if (desativar != null)
-            desativar.SetActive(false);
-        else
-            Debug.LogWarning("[AtivarJogadorEscolhido] Referência do personagem a DESATIVAR está nula. Verifique o Inspector.");
+        // Lê a classe salva no menu/cutscene (Mago ou Paladino)
+        string classeEscolhida = PlayerPrefs.GetString("ClasseEscolhida", "Paladino");
+        Debug.Log($"[AtivarJogadorEscolhido] Aplicando classe '{classeEscolhida}' na cena {SceneManager.GetActiveScene().name}");
 
-        if (ativar != null)
+        GameObject objAtivar = null;
+        GameObject objDesativar = null;
+
+        // Encontra todos os componentes MovimentoJogador da cena (mesmo os que estão inativos/escondidos)
+        MovimentoJogador[] todosJogadores = Resources.FindObjectsOfTypeAll<MovimentoJogador>();
+
+        foreach (MovimentoJogador jogador in todosJogadores)
         {
-            ativar.SetActive(true);
+            // Ignora prefabs nos assets e objetos de outras cenas
+            if (jogador.gameObject.scene != SceneManager.GetActiveScene()) continue;
 
-            // Redireciona a câmera para o personagem que acabou de ser ativado
+            if (jogador.ehMago)
+            {
+                if (classeEscolhida == "Mago") objAtivar = jogador.gameObject;
+                else objDesativar = jogador.gameObject;
+            }
+            else // Paladino (ehMago == false)
+            {
+                if (classeEscolhida == "Paladino" || string.IsNullOrEmpty(classeEscolhida)) objAtivar = jogador.gameObject;
+                else objDesativar = jogador.gameObject;
+            }
+        }
+
+        // Executa a ativação/desativação
+        if (objDesativar != null)
+        {
+            objDesativar.SetActive(false);
+        }
+
+        if (objAtivar != null)
+        {
+            objAtivar.SetActive(true);
+
+            // Garante que a câmera seja encontrada
+            if (virtualCamera == null)
+                virtualCamera = FindObjectOfType<CinemachineVirtualCamera>();
+
+            // Redireciona a câmera para o personagem ativo
             if (virtualCamera != null)
             {
-                virtualCamera.Follow = ativar.transform;
-                Debug.Log($"[AtivarJogadorEscolhido] Câmera redirecionada para: {ativar.name}");
+                virtualCamera.Follow = objAtivar.transform;
+                Debug.Log($"[AtivarJogadorEscolhido] Câmera redirecionada para: {objAtivar.name}");
             }
         }
         else
         {
-            Debug.LogWarning("[AtivarJogadorEscolhido] Referência do personagem a ATIVAR está nula. Verifique o Inspector.");
+            Debug.LogWarning("[AtivarJogadorEscolhido] Não foi possível encontrar os personagens na cena. Verifique se eles possuem o script MovimentoJogador.");
         }
     }
 }
