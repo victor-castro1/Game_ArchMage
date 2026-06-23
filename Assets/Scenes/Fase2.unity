@@ -13249,7 +13249,7 @@ MonoBehaviour:
   tempoEntreOndas: 2.5
   portas: []
   numeroPortas: 2
-  cenaDasPortas: Fase2
+  cenaDasPortas: SampleScene
   alturaPortas: 2.5
   espacoPortas: 3.5
 --- !u!114 &1717171704
