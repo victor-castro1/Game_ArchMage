@@ -56,6 +56,10 @@ public class MovimentoJogador : MonoBehaviour
     private Vector2 moveInput;
     private Animator animator;
 
+    [Header("Classe do Personagem")]
+    [Tooltip("Marque APENAS no prefab/GameObject do Mago. Troca 'Attack' por 'Spellcast' nas animações de ataque.")]
+    public bool ehMago = false;
+
     [Header("Dash (Fôlego Azul)")]
     public float velocidadeDash = 15f;
     public float tempoDash = 0.2f;
@@ -566,10 +570,11 @@ public class MovimentoJogador : MonoBehaviour
 
         proj.AddComponent<ProjetilMagico>().Iniciar(direcao, danoMagia, velocidadeMagia, tempoVidaMagia);
 
-        // Dispara a animação de conjuração SÓ se o trigger "Magia" existir no Animator (evita o warning)
+        // Dispara a animação de conjuração — Mago usa "Spellcast", Paladino usa "Magia"
         animator.SetFloat("LastInputX", direcao.x);
         animator.SetFloat("LastInputY", direcao.y);
-        if (TemParametro("Magia")) animator.SetTrigger("Magia");
+        string triggerMagia = ehMago ? "Spellcast" : "Magia";
+        if (TemParametro(triggerMagia)) animator.SetTrigger(triggerMagia);
 
         AoLancarMagia?.Invoke();
     }
@@ -658,7 +663,9 @@ public class MovimentoJogador : MonoBehaviour
         especialAtual = 0;
         AtualizarHUD();
 
-        animator.SetTrigger("Attack"); 
+        // Mago usa "Spellcast" (animação de magia); Paladino usa "Attack" (animação de espada)
+        string triggerAtaque = ehMago ? "Spellcast" : "Attack";
+        if (TemParametro(triggerAtaque)) animator.SetTrigger(triggerAtaque);
         sr.color = Color.cyan; 
 
         Physics2D.IgnoreLayerCollision(LayerMask.NameToLayer("Player"), LayerMask.NameToLayer("Inimigo"), true);
@@ -692,8 +699,10 @@ public class MovimentoJogador : MonoBehaviour
         AoAtacar?.Invoke();
         moveInput = Vector2.zero;
         animator.SetBool("isWalking", false);
-        
-        animator.SetTrigger("Attack");
+
+        // Mago usa "Spellcast" (animação de magia); Paladino usa "Attack" (animação de espada)
+        string triggerAtaque = ehMago ? "Spellcast" : "Attack";
+        if (TemParametro(triggerAtaque)) animator.SetTrigger(triggerAtaque);
         yield return new WaitForSeconds(0.4f); 
         estaAtacando = false;
     }
