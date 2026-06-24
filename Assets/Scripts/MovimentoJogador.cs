@@ -49,6 +49,8 @@ public class MovimentoJogador : MonoBehaviour
     private readonly Label[] cartaTitulos = new Label[3];
     private readonly Label[] cartaDescricoes = new Label[3];
     private readonly int[] cartasOferecidas = new int[3];
+    private System.Action aoConcluirCartas;
+    private Label labelDicaPorta;
 
     [Header("Movimento")]
     [SerializeField] private float moveSpeed = 5f;
@@ -228,6 +230,10 @@ public class MovimentoJogador : MonoBehaviour
             if (btnPauseReiniciar != null) btnPauseReiniciar.clicked += Reiniciar;
             if (btnPauseMenu != null) btnPauseMenu.clicked += VoltarAoMenu;
             if (painelPause != null) painelPause.style.display = DisplayStyle.None;
+
+            // Dica flutuante das portas
+            labelDicaPorta = root.Q<Label>("porta-hint");
+            if (labelDicaPorta != null) labelDicaPorta.style.display = DisplayStyle.None;
 
             AtualizarHUD();
         }
@@ -427,11 +433,11 @@ public class MovimentoJogador : MonoBehaviour
     }
 
     // Fim de FASE: oferece 3 cartas de aprimoramento; depois mostra "FASE CONCLUIDA" + CONTINUAR
-    public void MostrarFaseConcluida(string proximaCena)
+    // Oferece as cartas; ao concluir (escolher uma, ou se não houver cartas), executa o callback.
+    public void OfertarCartas(System.Action aoConcluir)
     {
-        cenaProxima = proximaCena;
+        aoConcluirCartas = aoConcluir;
 
-        // Só pausa e mostra a tela SE houver cartas pra escolher; senão vai direto pra próxima fase
         if (PrepararCartas())
         {
             emTelaModal = true;
@@ -440,8 +446,23 @@ public class MovimentoJogador : MonoBehaviour
         }
         else
         {
-            Continuar();
+            ConcluirCartas();
         }
+    }
+
+    private void ConcluirCartas()
+    {
+        Time.timeScale = 1f;
+        emTelaModal = false;
+        System.Action cb = aoConcluirCartas;
+        aoConcluirCartas = null;
+        cb?.Invoke();
+    }
+
+    // Mostra/esconde a dica flutuante "Aperte E" das portas
+    public void MostrarDicaPorta(bool mostrar)
+    {
+        if (labelDicaPorta != null) labelDicaPorta.style.display = mostrar ? DisplayStyle.Flex : DisplayStyle.None;
     }
 
     // Sorteia até 3 cartas (sem repetir, respeitando o limite de stack). Retorna false se não há cartas.
@@ -487,7 +508,7 @@ public class MovimentoJogador : MonoBehaviour
         AplicarCartaImediata(tipo);
 
         if (painelCartas != null) painelCartas.style.display = DisplayStyle.None;
-        Continuar(); // aplica a carta e vai direto pra próxima fase (sem tela de "fase concluída")
+        ConcluirCartas(); // aplica a carta e segue o fluxo (ex: liberar as portas)
     }
 
     // Recalcula os stats com a carta recém-escolhida (estado é salvo ao clicar em CONTINUAR)
@@ -538,14 +559,18 @@ public class MovimentoJogador : MonoBehaviour
 
     private void Continuar()
     {
-        // Salva o estado para a próxima fase carregar com a mesma vida/especial/fôlego
+        SalvarEstadoParaProximaFase();
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(cenaProxima);
+    }
+
+    // Salva vida/especial/fôlego para a próxima cena começar com o mesmo estado (usado pelas portas e pelo CONTINUAR)
+    public void SalvarEstadoParaProximaFase()
+    {
         vidaSalva = vidaTotal;
         especialSalva = especialAtual;
         folegoSalvo = folegoAtual;
         temEstadoSalvo = true;
-
-        Time.timeScale = 1f;
-        SceneManager.LoadScene(cenaProxima);
     }
 
     private void Reiniciar()
