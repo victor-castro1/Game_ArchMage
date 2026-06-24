@@ -89,8 +89,8 @@ public class MovimentoJogador : MonoBehaviour
     public float tempoVidaMagia = 2f;
     public float cooldownMagia = 0.4f;
     public Color corMagia = new Color(0.4f, 0.8f, 1f);
-    [Tooltip("Opcional: sprite do projétil. Se vazio, usa um círculo gerado em runtime.")]
-    public Sprite spriteProjetil;
+    [Tooltip("Arraste o Prefab animado da magia aqui")]
+    public GameObject prefabMagiaAnimada;
     private float proximoTiroMagia = 0f;
     private Vector2 direcaoOlhar = Vector2.down;
     private static Sprite spriteCirculoCache;
@@ -597,6 +597,7 @@ public class MovimentoJogador : MonoBehaviour
     // 🚨 MAGIA À DISTÂNCIA: cria o projétil em runtime, mirando no mouse (ou na direção do olhar)
     private void LancarMagia()
     {
+        // 1. Calcula a direção baseada no mouse
         Vector2 direcao = direcaoOlhar;
         if (Camera.main != null)
         {
@@ -605,33 +606,23 @@ public class MovimentoJogador : MonoBehaviour
             if (d.sqrMagnitude > 0.04f) direcao = d.normalized;
         }
 
-        GameObject proj = new GameObject("ProjetilMagico");
-        proj.transform.position = transform.position + (Vector3)(direcao * 0.6f);
+        // Posição onde a magia nasce
+        Vector3 posicaoTiro = transform.position + (Vector3)(direcao * 0.6f);
 
-        SpriteRenderer prSr = proj.AddComponent<SpriteRenderer>();
-        prSr.sprite = spriteProjetil != null ? spriteProjetil : GerarSpriteCirculo();
-        // Se a cor vier transparente (campo não configurado), usa um ciano visível
-        prSr.color = corMagia.a < 0.05f ? new Color(0.4f, 0.8f, 1f, 1f) : corMagia;
-        // Mesma camada de ordenação do jogador, um pouco acima (senão fica escondido atrás do cenário)
-        if (sr != null)
+        // 2. Instancia o seu Prefab bonitão já com tudo dentro
+        if (prefabMagiaAnimada != null)
         {
-            prSr.sortingLayerID = sr.sortingLayerID;
-            prSr.sortingOrder = sr.sortingOrder + 5;
+            GameObject proj = Instantiate(prefabMagiaAnimada, posicaoTiro, Quaternion.identity);
+            
+            // Pega o script ProjetilMagico que nós já tínhamos colocado lá e dá a partida
+            proj.GetComponent<ProjetilMagico>()?.Iniciar(direcao, danoMagia, velocidadeMagia, tempoVidaMagia);
         }
-        else prSr.sortingOrder = 100;
+        else
+        {
+            Debug.LogWarning("⚠️ OPA! Faltou arrastar o Prefab da Magia no campo lá no Inspector do Mago!");
+        }
 
-        CircleCollider2D col = proj.AddComponent<CircleCollider2D>();
-        col.isTrigger = true;
-        col.radius = 0.25f;
-
-        Rigidbody2D rbProj = proj.AddComponent<Rigidbody2D>();
-        rbProj.gravityScale = 0f;
-        rbProj.freezeRotation = true;
-        rbProj.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
-
-        proj.AddComponent<ProjetilMagico>().Iniciar(direcao, danoMagia, velocidadeMagia, tempoVidaMagia);
-
-        // Dispara a animação de conjuração — Mago usa "Spellcast", Paladino usa "Magia"
+        // 3. Dispara a animação de conjuração do personagem
         animator.SetFloat("LastInputX", direcao.x);
         animator.SetFloat("LastInputY", direcao.y);
         string triggerMagia = ehMago ? "Spellcast" : "Magia";

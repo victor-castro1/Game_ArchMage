@@ -11366,6 +11366,10 @@ PrefabInstance:
       propertyPath: danoDoEspecial
       value: 30
       objectReference: {fileID: 0}
+    - target: {fileID: 2932930560174820518, guid: e207b8b6011ad9d48a999e6ad5d10e3f, type: 3}
+      propertyPath: prefabMagiaAnimada
+      value: 
+      objectReference: {fileID: 2022191013425976812, guid: 681bd3359fddae44f9663bbfe55b3925, type: 3}
     - target: {fileID: 4673432662182254537, guid: e207b8b6011ad9d48a999e6ad5d10e3f, type: 3}
       propertyPath: m_ActionEvents.Array.size
       value: 14
@@ -13417,7 +13421,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8836703140948888317, guid: b45dfe42add803b4281f4fe1c59c49f5, type: 3}
       propertyPath: vidaTotal
-      value: 200
+      value: 300
+      objectReference: {fileID: 0}
+    - target: {fileID: 8836703140948888317, guid: b45dfe42add803b4281f4fe1c59c49f5, type: 3}
+      propertyPath: velocidade
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 8836703140948888317, guid: b45dfe42add803b4281f4fe1c59c49f5, type: 3}
       propertyPath: prefabMinion
@@ -13445,11 +13453,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8836703140948888317, guid: b45dfe42add803b4281f4fe1c59c49f5, type: 3}
       propertyPath: limiteMaximoMinions
-      value: 6
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 8836703140948888317, guid: b45dfe42add803b4281f4fe1c59c49f5, type: 3}
       propertyPath: tempoEntreInvocacoes
-      value: 3
+      value: 2
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

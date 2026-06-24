@@ -11366,6 +11366,10 @@ PrefabInstance:
       propertyPath: danoDoEspecial
       value: 30
       objectReference: {fileID: 0}
+    - target: {fileID: 2932930560174820518, guid: e207b8b6011ad9d48a999e6ad5d10e3f, type: 3}
+      propertyPath: prefabMagiaAnimada
+      value: 
+      objectReference: {fileID: 2022191013425976812, guid: 681bd3359fddae44f9663bbfe55b3925, type: 3}
     - target: {fileID: 4673432662182254537, guid: e207b8b6011ad9d48a999e6ad5d10e3f, type: 3}
       propertyPath: m_ActionEvents.Array.size
       value: 14
@@ -12244,7 +12248,8 @@ MonoBehaviour:
   raioSpawn: 7
   atrasoInicial: 1.5
   tempoEntreOndas: 2.5
-  portas: []
+  portas:
+  - {fileID: 2041143887}
   numeroPortas: 2
   cenaDasPortas: SampleScene
   alturaPortas: 2.5
@@ -13372,6 +13377,72 @@ MonoBehaviour:
     m_FrequencyGain: 1
     m_Duration: 1
     m_NoiseOffsets: {x: 0, y: 0, z: 0}
+--- !u!1001 &2041143886
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 7000000000000000010, guid: 293376cb98b94e249ab16c9ad1cb0d26, type: 3}
+      propertyPath: m_Name
+      value: Porta
+      objectReference: {fileID: 0}
+    - target: {fileID: 7000000000000000011, guid: 293376cb98b94e249ab16c9ad1cb0d26, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0.93
+      objectReference: {fileID: 0}
+    - target: {fileID: 7000000000000000011, guid: 293376cb98b94e249ab16c9ad1cb0d26, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 4.76
+      objectReference: {fileID: 0}
+    - target: {fileID: 7000000000000000011, guid: 293376cb98b94e249ab16c9ad1cb0d26, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7000000000000000011, guid: 293376cb98b94e249ab16c9ad1cb0d26, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7000000000000000011, guid: 293376cb98b94e249ab16c9ad1cb0d26, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7000000000000000011, guid: 293376cb98b94e249ab16c9ad1cb0d26, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7000000000000000011, guid: 293376cb98b94e249ab16c9ad1cb0d26, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7000000000000000011, guid: 293376cb98b94e249ab16c9ad1cb0d26, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7000000000000000011, guid: 293376cb98b94e249ab16c9ad1cb0d26, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7000000000000000011, guid: 293376cb98b94e249ab16c9ad1cb0d26, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7000000000000000013, guid: 293376cb98b94e249ab16c9ad1cb0d26, type: 3}
+      propertyPath: cenaDestino
+      value: SampleScene
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 293376cb98b94e249ab16c9ad1cb0d26, type: 3}
+--- !u!1 &2041143887 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7000000000000000010, guid: 293376cb98b94e249ab16c9ad1cb0d26, type: 3}
+  m_PrefabInstance: {fileID: 2041143886}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &2086788329
 GameObject:
   m_ObjectHideFlags: 0
@@ -13693,3 +13764,4 @@ SceneRoots:
   - {fileID: 637978147}
   - {fileID: 3149318115554473580}
   - {fileID: 1385053809}
+  - {fileID: 2041143886}
